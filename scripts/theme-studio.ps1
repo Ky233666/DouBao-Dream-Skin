@@ -61,12 +61,114 @@ function Read-StudioTheme {
     return (Get-Content -LiteralPath $themePath -Raw -Encoding UTF8 | ConvertFrom-Json)
 }
 
-function Get-AlphaPercent {
-    param([string]$Color, [int]$Fallback)
-    if ($Color -match 'rgba\([^,]+,[^,]+,[^,]+,\s*([0-9.]+)\s*\)') {
-        return [Math]::Max(0, [Math]::Min(100, [int]([double]$Matches[1] * 100)))
+function Get-ThemeColor {
+    param(
+        [string]$Value,
+        [int]$FallbackRed,
+        [int]$FallbackGreen,
+        [int]$FallbackBlue,
+        [int]$FallbackAlpha
+    )
+    $red = $FallbackRed
+    $green = $FallbackGreen
+    $blue = $FallbackBlue
+    $alpha = $FallbackAlpha
+    if ($Value -match '^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*([0-9.]+))?\s*\)$') {
+        $red = [Math]::Max(0, [Math]::Min(255, [int]$Matches[1]))
+        $green = [Math]::Max(0, [Math]::Min(255, [int]$Matches[2]))
+        $blue = [Math]::Max(0, [Math]::Min(255, [int]$Matches[3]))
+        if (-not [string]::IsNullOrWhiteSpace($Matches[4])) {
+            $alpha = [Math]::Max(0, [Math]::Min(100, [int]([double]$Matches[4] * 100)))
+        }
     }
-    return $Fallback
+    elseif ($Value -match '^#([0-9a-fA-F]{6})$') {
+        $red = [Convert]::ToInt32($Matches[1].Substring(0, 2), 16)
+        $green = [Convert]::ToInt32($Matches[1].Substring(2, 2), 16)
+        $blue = [Convert]::ToInt32($Matches[1].Substring(4, 2), 16)
+    }
+    return [pscustomobject]@{
+        Color = [System.Drawing.Color]::FromArgb(255, $red, $green, $blue)
+        Alpha = $alpha
+    }
+}
+
+function Update-ColorButton {
+    param(
+        [System.Windows.Forms.Button]$Button,
+        [System.Drawing.Color]$Color
+    )
+    $Button.Tag = $Color
+    $Button.BackColor = $Color
+    $Button.Text = '#{0:X2}{1:X2}{2:X2}' -f $Color.R, $Color.G, $Color.B
+    $luminance = (0.299 * $Color.R) + (0.587 * $Color.G) + (0.114 * $Color.B)
+    $Button.ForeColor = if ($luminance -lt 145) { [System.Drawing.Color]::White } else { [System.Drawing.Color]::Black }
+}
+
+function Format-StudioRgba {
+    param(
+        [System.Drawing.Color]$Color,
+        [int]$AlphaPercent
+    )
+    $alpha = ($AlphaPercent / 100.0).ToString('0.##', [System.Globalization.CultureInfo]::InvariantCulture)
+    return "rgba($($Color.R), $($Color.G), $($Color.B), $alpha)"
+}
+
+function Add-ColorOpacityRow {
+    param(
+        [System.Windows.Forms.Control]$Parent,
+        [string]$Label,
+        [int]$Top,
+        $Initial,
+        [int]$MinimumAlpha = 0
+    )
+    $caption = New-Object System.Windows.Forms.Label
+    $caption.Text = $Label
+    $caption.SetBounds(12, $Top + 7, 72, 24)
+    $Parent.Controls.Add($caption)
+
+    $colorButton = New-Object System.Windows.Forms.Button
+    $colorButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+    $colorButton.UseVisualStyleBackColor = $false
+    $colorButton.SetBounds(82, $Top, 112, 32)
+    Update-ColorButton -Button $colorButton -Color $Initial.Color
+    $Parent.Controls.Add($colorButton)
+
+    $alphaCaption = New-Object System.Windows.Forms.Label
+    $alphaCaption.Text = '透明度'
+    $alphaCaption.SetBounds(206, $Top + 7, 54, 24)
+    $Parent.Controls.Add($alphaCaption)
+
+    $alphaTrack = New-Object System.Windows.Forms.TrackBar
+    $alphaTrack.Minimum = $MinimumAlpha
+    $alphaTrack.Maximum = 100
+    $alphaTrack.Value = [Math]::Max($MinimumAlpha, [Math]::Min(100, [int]$Initial.Alpha))
+    $alphaTrack.TickFrequency = 10
+    $alphaTrack.SetBounds(258, $Top - 1, 210, 38)
+    $Parent.Controls.Add($alphaTrack)
+
+    $alphaValue = New-Object System.Windows.Forms.Label
+    $alphaValue.TextAlign = [System.Drawing.ContentAlignment]::MiddleRight
+    $alphaValue.SetBounds(466, $Top + 6, 62, 24)
+    $alphaValue.Text = "$($alphaTrack.Value)%"
+    $Parent.Controls.Add($alphaValue)
+    $alphaTrack.Add_ValueChanged(({ $alphaValue.Text = "$($alphaTrack.Value)%" }).GetNewClosure())
+
+    $colorButton.Add_Click(({
+        $dialog = New-Object System.Windows.Forms.ColorDialog
+        $dialog.AnyColor = $true
+        $dialog.FullOpen = $true
+        $dialog.Color = [System.Drawing.Color]$colorButton.Tag
+        if ($dialog.ShowDialog($form) -eq [System.Windows.Forms.DialogResult]::OK) {
+            Update-ColorButton -Button $colorButton -Color $dialog.Color
+            $statusLabel.Text = '颜色已调整，点击保存并应用'
+        }
+        $dialog.Dispose()
+    }).GetNewClosure())
+
+    return [pscustomobject]@{
+        ColorButton = $colorButton
+        AlphaTrack = $alphaTrack
+    }
 }
 
 function Resolve-ThemeImagePath {
@@ -123,7 +225,7 @@ function Add-TrackRow {
     )
     $caption = New-Object System.Windows.Forms.Label
     $caption.Text = $Label
-    $caption.SetBounds(24, $Top + 6, 110, 24)
+    $caption.SetBounds(12, $Top + 6, 90, 24)
     $Parent.Controls.Add($caption)
 
     $track = New-Object System.Windows.Forms.TrackBar
@@ -131,12 +233,12 @@ function Add-TrackRow {
     $track.Maximum = $Maximum
     $track.Value = [Math]::Max($Minimum, [Math]::Min($Maximum, $Value))
     $track.TickFrequency = [Math]::Max(1, [int](($Maximum - $Minimum) / 8))
-    $track.SetBounds(135, $Top, 360, 38)
+    $track.SetBounds(100, $Top, 365, 38)
     $Parent.Controls.Add($track)
 
     $valueLabel = New-Object System.Windows.Forms.Label
     $valueLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleRight
-    $valueLabel.SetBounds(495, $Top + 5, 82, 24)
+    $valueLabel.SetBounds(464, $Top + 5, 66, 24)
     $valueLabel.Text = "$($track.Value)$Suffix"
     $Parent.Controls.Add($valueLabel)
     $track.Add_ValueChanged(({ $valueLabel.Text = "$($track.Value)$Suffix" }).GetNewClosure())
@@ -144,13 +246,16 @@ function Add-TrackRow {
 }
 
 $theme = Read-StudioTheme
+$sidebarInitial = Get-ThemeColor -Value ([string]$theme.sidebarColor) -FallbackRed 255 -FallbackGreen 241 -FallbackBlue 232 -FallbackAlpha 48
+$surfaceInitial = Get-ThemeColor -Value ([string]$theme.surfaceColor) -FallbackRed 255 -FallbackGreen 250 -FallbackBlue 246 -FallbackAlpha 35
+$composerInitial = Get-ThemeColor -Value ([string]$theme.composerColor) -FallbackRed 255 -FallbackGreen 252 -FallbackBlue 249 -FallbackAlpha 82
 $form = New-Object System.Windows.Forms.Form
 $form.Text = '豆包梦幻皮肤设置'
 $form.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
 $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
 $form.MaximizeBox = $false
 $form.MinimizeBox = $false
-$form.ClientSize = New-Object System.Drawing.Size(610, 635)
+$form.ClientSize = New-Object System.Drawing.Size(610, 690)
 $form.BackColor = [System.Drawing.Color]::FromArgb(250, 246, 243)
 $form.Font = New-Object System.Drawing.Font('Microsoft YaHei UI', 9)
 
@@ -170,28 +275,47 @@ $preview = New-Object System.Windows.Forms.PictureBox
 $preview.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
 $preview.BackColor = [System.Drawing.Color]::FromArgb(232, 225, 220)
 $preview.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::Zoom
-$preview.SetBounds(24, 82, 562, 220)
+$preview.SetBounds(24, 82, 562, 185)
 $form.Controls.Add($preview)
 
 $imageLabel = New-Object System.Windows.Forms.Label
 $imageLabel.AutoEllipsis = $true
-$imageLabel.SetBounds(24, 310, 420, 24)
+$imageLabel.SetBounds(24, 275, 420, 24)
 $form.Controls.Add($imageLabel)
 
 $browseButton = New-Object System.Windows.Forms.Button
 $browseButton.Text = '选择背景图片…'
-$browseButton.SetBounds(452, 306, 134, 30)
+$browseButton.SetBounds(452, 271, 134, 30)
 $form.Controls.Add($browseButton)
 
-$brightnessTrack = Add-TrackRow -Parent $form -Label '背景亮度' -Top 348 -Minimum 50 -Maximum 130 -Value ([int]([double]$theme.backgroundBrightness * 100)) -Suffix '%'
-$surfaceTrack = Add-TrackRow -Parent $form -Label '主区遮罩' -Top 390 -Minimum 0 -Maximum 80 -Value (Get-AlphaPercent -Color ([string]$theme.surfaceColor) -Fallback 34) -Suffix '%'
-$sidebarTrack = Add-TrackRow -Parent $form -Label '侧栏遮罩' -Top 432 -Minimum 15 -Maximum 90 -Value (Get-AlphaPercent -Color ([string]$theme.sidebarColor) -Fallback 64) -Suffix '%'
-$blurTrack = Add-TrackRow -Parent $form -Label '玻璃模糊' -Top 474 -Minimum 0 -Maximum 40 -Value ([int]$theme.blurPixels) -Suffix ' px'
+$statusLabel = New-Object System.Windows.Forms.Label
+$statusLabel.ForeColor = [System.Drawing.Color]::FromArgb(116, 77, 65)
+$statusLabel.SetBounds(24, 605, 562, 24)
+$statusLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleRight
+$form.Controls.Add($statusLabel)
+
+$tabs = New-Object System.Windows.Forms.TabControl
+$tabs.SetBounds(24, 310, 562, 288)
+$form.Controls.Add($tabs)
+
+$commonTab = New-Object System.Windows.Forms.TabPage
+$commonTab.Text = '背景与效果'
+$commonTab.BackColor = [System.Drawing.Color]::FromArgb(250, 246, 243)
+$tabs.TabPages.Add($commonTab)
+
+$colorsTab = New-Object System.Windows.Forms.TabPage
+$colorsTab.Text = '颜色与透明度'
+$colorsTab.BackColor = [System.Drawing.Color]::FromArgb(250, 246, 243)
+$tabs.TabPages.Add($colorsTab)
+
+$brightnessTrack = Add-TrackRow -Parent $commonTab -Label '背景亮度' -Top 10 -Minimum 50 -Maximum 130 -Value ([int]([double]$theme.backgroundBrightness * 100)) -Suffix '%'
+$saturationTrack = Add-TrackRow -Parent $commonTab -Label '背景饱和度' -Top 54 -Minimum 0 -Maximum 200 -Value ([int]([double]$theme.backgroundSaturation * 100)) -Suffix '%'
+$blurTrack = Add-TrackRow -Parent $commonTab -Label '玻璃模糊' -Top 98 -Minimum 0 -Maximum 60 -Value ([int]$theme.blurPixels) -Suffix ' px'
 
 $positionLabel = New-Object System.Windows.Forms.Label
 $positionLabel.Text = '背景焦点'
-$positionLabel.SetBounds(24, 525, 110, 24)
-$form.Controls.Add($positionLabel)
+$positionLabel.SetBounds(12, 153, 90, 24)
+$commonTab.Controls.Add($positionLabel)
 
 $positionBox = New-Object System.Windows.Forms.ComboBox
 $positionBox.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
@@ -200,18 +324,28 @@ $null = $positionBox.Items.Add('center top')
 $null = $positionBox.Items.Add('40% center')
 $null = $positionBox.Items.Add('60% center')
 $null = $positionBox.Items.Add('center bottom')
-$positionBox.SetBounds(135, 521, 190, 30)
+$positionBox.SetBounds(100, 149, 210, 30)
 $selectedPosition = [string]$theme.backgroundPosition
 $positionIndex = $positionBox.Items.IndexOf($selectedPosition)
 if ($positionIndex -lt 0) { $positionIndex = 0 }
 $positionBox.SelectedIndex = $positionIndex
-$form.Controls.Add($positionBox)
+$commonTab.Controls.Add($positionBox)
 
-$statusLabel = New-Object System.Windows.Forms.Label
-$statusLabel.ForeColor = [System.Drawing.Color]::FromArgb(116, 77, 65)
-$statusLabel.SetBounds(338, 524, 248, 24)
-$statusLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleRight
-$form.Controls.Add($statusLabel)
+$commonHint = New-Object System.Windows.Forms.Label
+$commonHint.Text = '亮度和饱和度控制背景观感；模糊值越高，玻璃效果越柔和。'
+$commonHint.ForeColor = [System.Drawing.Color]::FromArgb(118, 105, 99)
+$commonHint.SetBounds(12, 200, 520, 42)
+$commonTab.Controls.Add($commonHint)
+
+$sidebarRow = Add-ColorOpacityRow -Parent $colorsTab -Label '左侧栏' -Top 14 -Initial $sidebarInitial -MinimumAlpha 15
+$surfaceRow = Add-ColorOpacityRow -Parent $colorsTab -Label '主区域' -Top 78 -Initial $surfaceInitial -MinimumAlpha 0
+$composerRow = Add-ColorOpacityRow -Parent $colorsTab -Label '输入框' -Top 142 -Initial $composerInitial -MinimumAlpha 20
+
+$colorsHint = New-Object System.Windows.Forms.Label
+$colorsHint.Text = '点击色块选择颜色；透明度越低，背景图片越清晰。'
+$colorsHint.ForeColor = [System.Drawing.Color]::FromArgb(118, 105, 99)
+$colorsHint.SetBounds(12, 204, 520, 30)
+$colorsTab.Controls.Add($colorsHint)
 
 $saveButton = New-Object System.Windows.Forms.Button
 $saveButton.Text = '保存并应用'
@@ -219,22 +353,22 @@ $saveButton.Font = New-Object System.Drawing.Font('Microsoft YaHei UI', 9, [Syst
 $saveButton.BackColor = [System.Drawing.Color]::FromArgb(184, 95, 75)
 $saveButton.ForeColor = [System.Drawing.Color]::White
 $saveButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-$saveButton.SetBounds(24, 570, 160, 42)
+$saveButton.SetBounds(24, 635, 160, 42)
 $form.Controls.Add($saveButton)
 
 $startButton = New-Object System.Windows.Forms.Button
 $startButton.Text = '启动皮肤'
-$startButton.SetBounds(198, 570, 126, 42)
+$startButton.SetBounds(198, 635, 126, 42)
 $form.Controls.Add($startButton)
 
 $restoreButton = New-Object System.Windows.Forms.Button
 $restoreButton.Text = '恢复官方外观'
-$restoreButton.SetBounds(338, 570, 126, 42)
+$restoreButton.SetBounds(338, 635, 126, 42)
 $form.Controls.Add($restoreButton)
 
 $closeButton = New-Object System.Windows.Forms.Button
 $closeButton.Text = '关闭'
-$closeButton.SetBounds(478, 570, 108, 42)
+$closeButton.SetBounds(478, 635, 108, 42)
 $form.Controls.Add($closeButton)
 
 $browseButton.Add_Click({
@@ -267,8 +401,10 @@ $saveButton.Add_Click({
             $current.backgroundImage = "../themes/$([System.IO.Path]::GetFileName($destination))"
         }
         $current.backgroundBrightness = [Math]::Round($brightnessTrack.Value / 100.0, 2)
-        $current.surfaceColor = "rgba(255, 250, 246, $([Math]::Round($surfaceTrack.Value / 100.0, 2)))"
-        $current.sidebarColor = "rgba(255, 241, 232, $([Math]::Round($sidebarTrack.Value / 100.0, 2)))"
+        $current.backgroundSaturation = [Math]::Round($saturationTrack.Value / 100.0, 2)
+        $current.sidebarColor = Format-StudioRgba -Color ([System.Drawing.Color]$sidebarRow.ColorButton.Tag) -AlphaPercent $sidebarRow.AlphaTrack.Value
+        $current.surfaceColor = Format-StudioRgba -Color ([System.Drawing.Color]$surfaceRow.ColorButton.Tag) -AlphaPercent $surfaceRow.AlphaTrack.Value
+        $current.composerColor = Format-StudioRgba -Color ([System.Drawing.Color]$composerRow.ColorButton.Tag) -AlphaPercent $composerRow.AlphaTrack.Value
         $current.blurPixels = $blurTrack.Value
         $current.backgroundPosition = [string]$positionBox.SelectedItem
         $json = $current | ConvertTo-Json -Depth 10
@@ -308,6 +444,16 @@ $form.Add_FormClosed({ if ($null -ne $preview.Image) { $preview.Image.Dispose() 
 Set-PreviewImage -Path (Resolve-ThemeImagePath -Theme $theme)
 if ($SelfTest) {
     if ($null -eq $preview.Image) { throw 'Theme Studio preview did not load.' }
+    $parsedTestColor = Get-ThemeColor -Value 'rgba(12, 34, 56, 0.42)' -FallbackRed 1 -FallbackGreen 2 -FallbackBlue 3 -FallbackAlpha 4
+    if ($parsedTestColor.Color.R -ne 12 -or $parsedTestColor.Color.G -ne 34 -or $parsedTestColor.Color.B -ne 56 -or $parsedTestColor.Alpha -ne 42) {
+        throw 'Theme Studio color parsing self-test failed.'
+    }
+    if ((Format-StudioRgba -Color $parsedTestColor.Color -AlphaPercent $parsedTestColor.Alpha) -ne 'rgba(12, 34, 56, 0.42)') {
+        throw 'Theme Studio color formatting self-test failed.'
+    }
+    if ($null -eq $saturationTrack -or $null -eq $sidebarRow -or $null -eq $surfaceRow -or $null -eq $composerRow) {
+        throw 'Theme Studio advanced controls did not initialize.'
+    }
     Write-Output "Theme Studio self-test passed: $($theme.name)"
     $preview.Image.Dispose()
     $form.Dispose()

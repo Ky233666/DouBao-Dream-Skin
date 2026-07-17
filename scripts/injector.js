@@ -12,7 +12,7 @@ const {
   validateDebuggerUrl,
 } = require("./cdp-client");
 
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 const MAX_IMAGE_BYTES = 16 * 1024 * 1024;
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 const USER_THEME = path.join(PROJECT_ROOT, "config", "theme.json");
