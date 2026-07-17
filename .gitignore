@@ -1,4 +1,6 @@
 artifacts/
+output/
+.cache/
 .agents/
 config/app.json
 config/theme.json

@@ -1,0 +1,71 @@
+:root {
+  color: #30241f;
+  font-family: "Microsoft YaHei UI", "Segoe UI", sans-serif;
+  background: #f7f1ed;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 760px; }
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 76px;
+  padding: 13px max(24px, calc((100vw - 1040px) / 2));
+  border-bottom: 1px solid rgba(112, 65, 50, 0.12);
+  background: rgba(255, 250, 247, 0.9);
+  backdrop-filter: blur(18px);
+}
+
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand strong { display: block; font-size: 18px; }
+.brand small { display: block; margin-top: 3px; color: #8c776e; }
+.logo { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 14px; color: white; font-size: 22px; font-weight: 800; background: linear-gradient(135deg, #d87861, #a94c3d); box-shadow: 0 8px 20px rgba(139, 64, 50, 0.2); }
+
+.enabled-row { display: flex; gap: 9px; align-items: center; font-weight: 700; }
+.enabled-row input { width: 20px; height: 20px; accent-color: #b85f4b; }
+
+.page { width: min(1040px, calc(100% - 48px)); margin: 24px auto 42px; }
+.preview-card, .card, .action-bar { border: 1px solid rgba(112, 65, 50, 0.12); background: rgba(255, 255, 255, 0.72); box-shadow: 0 10px 32px rgba(75, 45, 35, 0.06); }
+.preview-card { overflow: hidden; border-radius: 20px; }
+.preview { aspect-ratio: 16 / 6.6; min-height: 260px; background-position: center; background-size: cover; background-repeat: no-repeat; }
+.preview-actions { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 16px 18px; }
+.preview-actions strong { display: block; max-width: 460px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.preview-actions small, .section-note { color: #8b776e; }
+.preview-actions small { display: block; margin-top: 5px; }
+
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+.card { min-height: 360px; padding: 22px; border-radius: 18px; }
+h2 { margin: 0; font-size: 17px; }
+.section-note { margin: 6px 0 22px; font-size: 13px; }
+
+.range-row { display: grid; grid-template-columns: 90px 1fr 58px; gap: 12px; align-items: center; min-height: 58px; }
+.range-row output, .color-row output { color: #795b50; text-align: right; font-variant-numeric: tabular-nums; }
+input[type="range"] { width: 100%; accent-color: #b85f4b; }
+
+.select-row { display: grid; grid-template-columns: 90px 1fr; gap: 12px; align-items: center; min-height: 58px; }
+select { min-height: 38px; padding: 0 10px; border: 1px solid rgba(112, 65, 50, 0.18); border-radius: 9px; color: inherit; background: white; }
+
+.color-row { display: grid; grid-template-columns: 68px 48px 1fr 58px; gap: 12px; align-items: center; min-height: 74px; }
+input[type="color"] { width: 48px; height: 36px; padding: 3px; border: 1px solid rgba(112, 65, 50, 0.18); border-radius: 8px; background: white; cursor: pointer; }
+
+.action-bar { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-top: 18px; padding: 15px 18px; border-radius: 16px; }
+#status { color: #7e6258; font-size: 13px; }
+.button-row { display: flex; align-items: center; gap: 10px; }
+button, .file-button, .link-button { min-height: 40px; padding: 0 17px; border-radius: 10px; font: inherit; cursor: pointer; }
+button { border: 0; }
+.primary { color: white; font-weight: 700; background: #b85f4b; }
+.primary:hover { background: #a85240; }
+.ghost, .file-button, .link-button { display: inline-flex; align-items: center; justify-content: center; color: #6f554b; border: 1px solid rgba(112, 65, 50, 0.17); background: rgba(255, 255, 255, 0.78); text-decoration: none; }
+.ghost:hover, .file-button:hover, .link-button:hover { background: white; }
+#imageInput { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+@media (max-width: 860px) {
+  .settings-grid { grid-template-columns: 1fr; }
+  .preview-actions, .action-bar { align-items: stretch; flex-direction: column; }
+  .preview-actions .button-row, .action-bar .button-row { justify-content: flex-end; }
+}

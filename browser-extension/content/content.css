@@ -1,0 +1,131 @@
+/* Doubao Dream Skin - browser extension */
+
+html[data-doubao-dream-skin-web="enabled"] {
+  --dbsw-sidebar: rgba(255, 241, 232, 0.48);
+  --dbsw-surface: rgba(255, 250, 246, 0.35);
+  --dbsw-composer: rgba(255, 252, 249, 0.82);
+  --dbsw-border: rgba(80, 57, 50, 0.18);
+  --dbsw-shadow: rgba(48, 28, 22, 0.18);
+  --dbsw-overlay: rgba(28, 18, 16, 0.08);
+  --dbsw-blur: 12px;
+  color-scheme: light;
+}
+
+#doubao-dream-skin-web-background {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: -2147483647 !important;
+  display: block !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  pointer-events: none !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  transform: translateZ(0);
+}
+
+#doubao-dream-skin-web-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--dbsw-overlay);
+}
+
+html[data-doubao-dream-skin-web="enabled"],
+html[data-doubao-dream-skin-web="enabled"] body,
+html[data-doubao-dream-skin-web="enabled"] #root,
+html[data-doubao-dream-skin-web="enabled"] #app,
+html[data-doubao-dream-skin-web="enabled"] #doubao-app {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+html[data-doubao-dream-skin-web="enabled"] body {
+  isolation: isolate;
+}
+
+html[data-doubao-dream-skin-web="enabled"] #chat-route-layout,
+html[data-doubao-dream-skin-web="enabled"] #chat-route-main,
+html[data-doubao-dream-skin-web="enabled"] [class*="app-layout" i],
+html[data-doubao-dream-skin-web="enabled"] [class*="main-layout" i],
+html[data-doubao-dream-skin-web="enabled"] [class*="page-container" i],
+html[data-doubao-dream-skin-web="enabled"] [class*="conversation-container" i],
+html[data-doubao-dream-skin-web="enabled"] [class*="chat-container" i] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+html[data-doubao-dream-skin-web="enabled"] [class*="greeting-text" i]::after,
+html[data-doubao-dream-skin-web="enabled"] div:has(+ #experiment-guidance-suggestions)::after {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+html[data-doubao-dream-skin-web="enabled"] aside,
+html[data-doubao-dream-skin-web="enabled"] [class*="side-bar" i],
+html[data-doubao-dream-skin-web="enabled"] [class*="left-panel" i],
+html[data-doubao-dream-skin-web="enabled"] [class*="history-panel" i],
+html[data-doubao-dream-skin-web="enabled"] nav[class*="left-side" i] {
+  background-color: var(--dbsw-sidebar) !important;
+  background-image: none !important;
+  border-color: var(--dbsw-border) !important;
+  -webkit-backdrop-filter: blur(var(--dbsw-blur)) saturate(1.08);
+  backdrop-filter: blur(var(--dbsw-blur)) saturate(1.08);
+}
+
+html[data-doubao-dream-skin-web="enabled"] #flow_chat_sidebar {
+  background-color: transparent !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+html[data-doubao-dream-skin-web="enabled"] #flow_chat_sidebar .sticky[class*="bg-dbx-bg-base-web" i] {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.2), transparent 88%) !important;
+  border-bottom: 1px solid var(--dbsw-border) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: blur(calc(var(--dbsw-blur) * 0.38));
+  backdrop-filter: blur(calc(var(--dbsw-blur) * 0.38));
+}
+
+html[data-doubao-dream-skin-web="enabled"] main,
+html[data-doubao-dream-skin-web="enabled"] [role="main"],
+html[data-doubao-dream-skin-web="enabled"] [class*="main-content" i],
+html[data-doubao-dream-skin-web="enabled"] [class*="chat-content" i],
+html[data-doubao-dream-skin-web="enabled"] [class*="conversation-content" i] {
+  background-color: var(--dbsw-surface) !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: blur(calc(var(--dbsw-blur) * 0.08));
+  backdrop-filter: blur(calc(var(--dbsw-blur) * 0.08));
+}
+
+html[data-doubao-dream-skin-web="enabled"] [class*="composer" i],
+html[data-doubao-dream-skin-web="enabled"] [class*="send-box" i],
+html[data-doubao-dream-skin-web="enabled"] form:has(textarea),
+html[data-doubao-dream-skin-web="enabled"] form:has([contenteditable="true"]),
+html[data-doubao-dream-skin-web="enabled"] #input-engine-container {
+  background-color: var(--dbsw-composer) !important;
+  border-color: var(--dbsw-border) !important;
+  box-shadow: 0 12px 36px var(--dbsw-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--dbsw-blur)) saturate(1.12);
+  backdrop-filter: blur(var(--dbsw-blur)) saturate(1.12);
+}
+
+html[data-doubao-dream-skin-web="enabled"] div:has(> #input-engine-container),
+html[data-doubao-dream-skin-web="enabled"] #input-engine-container > div,
+html[data-doubao-dream-skin-web="enabled"] textarea,
+html[data-doubao-dream-skin-web="enabled"] [contenteditable="true"] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+html[data-doubao-dream-skin-web="enabled"] ::selection {
+  background: rgba(184, 95, 75, 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #doubao-dream-skin-web-background {
+    transform: none;
+  }
+}

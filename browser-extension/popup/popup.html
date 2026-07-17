@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>豆包梦幻皮肤</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="hero">
+    <span class="logo">豆</span>
+    <span>
+      <strong>豆包梦幻皮肤</strong>
+      <small>网页版 · Chrome / Edge</small>
+    </span>
+  </header>
+
+  <main>
+    <label class="toggle-row" for="enabled">
+      <span>
+        <b>启用网页皮肤</b>
+        <small id="stateText">正在读取设置…</small>
+      </span>
+      <span class="switch">
+        <input id="enabled" type="checkbox">
+        <span class="slider"></span>
+      </span>
+    </label>
+
+    <button id="openOptions" class="primary" type="button">自定义背景与玻璃效果</button>
+    <button id="reset" class="secondary" type="button">恢复默认主题</button>
+    <a class="open-doubao" href="https://www.doubao.com/chat/" target="_blank" rel="noreferrer">打开网页版豆包 ↗</a>
+  </main>
+
+  <footer>设置只保存在本机浏览器中</footer>
+
+  <script src="../shared/defaults.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

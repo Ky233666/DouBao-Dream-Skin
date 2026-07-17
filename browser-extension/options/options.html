@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>豆包梦幻皮肤设置</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">豆</span>
+      <span>
+        <strong>豆包梦幻皮肤</strong>
+        <small>网页版皮肤设置</small>
+      </span>
+    </div>
+    <label class="enabled-row" for="enabled">
+      <span>启用皮肤</span>
+      <input id="enabled" type="checkbox">
+    </label>
+  </header>
+
+  <main class="page">
+    <section class="preview-card">
+      <div id="preview" class="preview" role="img" aria-label="背景图片预览"></div>
+      <div class="preview-actions">
+        <div>
+          <strong id="backgroundName">内置渐变背景</strong>
+          <small id="backgroundMeta">背景图片仅保存在本机</small>
+        </div>
+        <div class="button-row">
+          <label class="file-button" for="imageInput">选择背景图片</label>
+          <input id="imageInput" type="file" accept="image/jpeg,image/png,image/webp">
+          <button id="removeBackground" class="ghost" type="button">使用内置背景</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="settings-grid">
+      <section class="card">
+        <h2>背景与效果</h2>
+        <p class="section-note">调整图片观感和玻璃柔和程度。</p>
+
+        <label class="range-row" for="backgroundBrightness">
+          <span>背景亮度</span>
+          <input id="backgroundBrightness" type="range" min="50" max="130" step="1">
+          <output id="backgroundBrightnessValue"></output>
+        </label>
+        <label class="range-row" for="backgroundSaturation">
+          <span>背景饱和度</span>
+          <input id="backgroundSaturation" type="range" min="0" max="200" step="1">
+          <output id="backgroundSaturationValue"></output>
+        </label>
+        <label class="range-row" for="blurPixels">
+          <span>玻璃模糊</span>
+          <input id="blurPixels" type="range" min="0" max="60" step="1">
+          <output id="blurPixelsValue"></output>
+        </label>
+        <label class="select-row" for="backgroundPosition">
+          <span>背景焦点</span>
+          <select id="backgroundPosition">
+            <option value="center center">居中</option>
+            <option value="center top">顶部居中</option>
+            <option value="40% center">稍微偏左</option>
+            <option value="60% center">稍微偏右</option>
+            <option value="center bottom">底部居中</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="card">
+        <h2>颜色与透明度</h2>
+        <p class="section-note">透明度越低，背景图片越清晰。</p>
+
+        <div class="color-row">
+          <label for="sidebarColor">左侧栏</label>
+          <input id="sidebarColor" type="color">
+          <input id="sidebarAlpha" type="range" min="15" max="100" step="1">
+          <output id="sidebarAlphaValue"></output>
+        </div>
+        <div class="color-row">
+          <label for="surfaceColor">主区域</label>
+          <input id="surfaceColor" type="color">
+          <input id="surfaceAlpha" type="range" min="0" max="100" step="1">
+          <output id="surfaceAlphaValue"></output>
+        </div>
+        <div class="color-row">
+          <label for="composerColor">输入框</label>
+          <input id="composerColor" type="color">
+          <input id="composerAlpha" type="range" min="20" max="100" step="1">
+          <output id="composerAlphaValue"></output>
+        </div>
+      </section>
+    </div>
+
+    <div class="action-bar">
+      <span id="status" role="status">修改后点击保存并应用</span>
+      <div class="button-row">
+        <button id="reset" class="ghost" type="button">恢复推荐参数</button>
+        <a class="ghost link-button" href="https://www.doubao.com/chat/" target="_blank" rel="noreferrer">打开豆包</a>
+        <button id="save" class="primary" type="button">保存并应用</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="../shared/defaults.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
