@@ -1,0 +1,22 @@
+{
+  "id": "warm-gradient-glass",
+  "name": "暖色渐变玻璃",
+  "backgroundImage": "../assets/default-background.svg",
+  "backgroundPosition": "center center",
+  "backgroundBrightness": 1,
+  "backgroundSaturation": 1,
+  "overlayColor": "rgba(38, 19, 16, 0.08)",
+  "sidebarColor": "rgba(255, 241, 232, 0.48)",
+  "surfaceColor": "rgba(255, 250, 246, 0.35)",
+  "composerColor": "rgba(255, 252, 249, 0.82)",
+  "borderColor": "rgba(112, 65, 50, 0.20)",
+  "shadowColor": "rgba(62, 28, 20, 0.18)",
+  "accentColor": "#b85f4b",
+  "blurPixels": 12,
+  "targetUrlPatterns": [
+    "^https://([a-z0-9-]+\\.)*doubao\\.com(?::[0-9]+)?/",
+    "^app://",
+    "^chrome://doubao-chat/",
+    "^chrome://doubao-launcher/"
+  ]
+}

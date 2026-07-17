@@ -1,0 +1,170 @@
+/* Doubao Dream Skin - all rules are removed when the skin is restored. */
+
+:root[data-doubao-dream-skin] {
+  --dbs-sidebar: rgba(255, 241, 232, 0.70);
+  --dbs-surface: rgba(255, 250, 246, 0.52);
+  --dbs-composer: rgba(255, 252, 249, 0.82);
+  --dbs-border: rgba(112, 65, 50, 0.20);
+  --dbs-shadow: rgba(62, 28, 20, 0.18);
+  --dbs-accent: #b85f4b;
+  --dbs-overlay: rgba(38, 19, 16, 0.16);
+  --dbs-blur: 20px;
+  color-scheme: light;
+}
+
+#doubao-dream-skin-background {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: -2147483647 !important;
+  display: block !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  pointer-events: none !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  transform: translateZ(0);
+}
+
+#doubao-dream-skin-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--dbs-overlay);
+}
+
+:root[data-doubao-dream-skin],
+:root[data-doubao-dream-skin] body,
+:root[data-doubao-dream-skin] #root,
+:root[data-doubao-dream-skin] #app,
+:root[data-doubao-dream-skin] #doubao-app {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+:root[data-doubao-dream-skin] body {
+  isolation: isolate;
+}
+
+/* Top-level application surfaces. The selectors deliberately avoid hashed
+   class names so minor Doubao updates are less likely to break the theme. */
+:root[data-doubao-dream-skin] [class*="app-container" i],
+:root[data-doubao-dream-skin] [class*="app-layout" i],
+:root[data-doubao-dream-skin] [class*="page-layout" i],
+:root[data-doubao-dream-skin] [class*="main-layout" i],
+:root[data-doubao-dream-skin] [class*="page-container" i],
+:root[data-doubao-dream-skin] [class*="main-container" i],
+:root[data-doubao-dream-skin] [class*="conversation-container" i],
+:root[data-doubao-dream-skin] [class*="chat-container" i] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Doubao 2.17 uses these stable route IDs for the full-window shell. They are
+   the opaque layers that otherwise hide the injected wallpaper. */
+:root[data-doubao-dream-skin] #chat-route-layout,
+:root[data-doubao-dream-skin] #chat-route-main {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Doubao animates the home greeting with an ::after block translated to the
+   right. Its stock #fcfcfc fill is invisible on the official page but becomes
+   a white rectangle over a wallpaper, so retain the animation and clear only
+   that masking fill. */
+:root[data-doubao-dream-skin] [class*="greeting-text" i]::after,
+:root[data-doubao-dream-skin] div:has(+ #experiment-guidance-suggestions)::after {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Navigation and history sidebar. */
+:root[data-doubao-dream-skin] aside,
+:root[data-doubao-dream-skin] [class*="side-bar" i],
+:root[data-doubao-dream-skin] [class*="left-panel" i],
+:root[data-doubao-dream-skin] [class*="history-panel" i] {
+  background-color: var(--dbs-sidebar) !important;
+  background-image: none !important;
+  border-color: var(--dbs-border) !important;
+  -webkit-backdrop-filter: blur(var(--dbs-blur)) saturate(1.08);
+  backdrop-filter: blur(var(--dbs-blur)) saturate(1.08);
+}
+
+
+/* Avoid stacking two translucent sidebar panes on top of each other. */
+:root[data-doubao-dream-skin] nav[class*="left-side" i] {
+  background-color: var(--dbs-sidebar) !important;
+}
+
+:root[data-doubao-dream-skin] #flow_chat_sidebar {
+  background-color: transparent !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Blend the sticky "历史对话" caption into the glass sidebar. Doubao's stock
+   solid background reads as a pasted-on white card once a wallpaper is used. */
+:root[data-doubao-dream-skin] #flow_chat_sidebar .sticky[class*="bg-dbx-bg-base-web" i] {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--dbs-composer) 30%, transparent),
+    transparent 88%
+  ) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--dbs-border) 58%, transparent) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: blur(calc(var(--dbs-blur) * 0.38));
+  backdrop-filter: blur(calc(var(--dbs-blur) * 0.38));
+}
+
+/* Main conversation surface. */
+:root[data-doubao-dream-skin] main,
+:root[data-doubao-dream-skin] [role="main"],
+:root[data-doubao-dream-skin] [class*="main-content" i],
+:root[data-doubao-dream-skin] [class*="chat-content" i],
+:root[data-doubao-dream-skin] [class*="conversation-content" i] {
+  background-color: var(--dbs-surface) !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: blur(calc(var(--dbs-blur) * 0.08));
+  backdrop-filter: blur(calc(var(--dbs-blur) * 0.08));
+}
+
+/* Composer and input controls. */
+:root[data-doubao-dream-skin] [class*="composer" i],
+:root[data-doubao-dream-skin] [class*="send-box" i],
+:root[data-doubao-dream-skin] form:has(textarea),
+:root[data-doubao-dream-skin] form:has([contenteditable="true"]),
+:root[data-doubao-dream-skin] #input-engine-container {
+  background-color: var(--dbs-composer) !important;
+  border-color: var(--dbs-border) !important;
+  box-shadow: 0 12px 36px var(--dbs-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--dbs-blur)) saturate(1.12);
+  backdrop-filter: blur(var(--dbs-blur)) saturate(1.12);
+}
+
+:root[data-doubao-dream-skin] div:has(> #input-engine-container),
+:root[data-doubao-dream-skin] #input-engine-container > div {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+:root[data-doubao-dream-skin] textarea,
+:root[data-doubao-dream-skin] [contenteditable="true"] {
+  background-color: transparent !important;
+}
+
+/* Keep controls legible without repainting every native component. */
+:root[data-doubao-dream-skin] button:hover,
+:root[data-doubao-dream-skin] [role="button"]:hover {
+  border-color: color-mix(in srgb, var(--dbs-accent) 35%, transparent) !important;
+}
+
+:root[data-doubao-dream-skin] ::selection {
+  background: color-mix(in srgb, var(--dbs-accent) 30%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #doubao-dream-skin-background {
+    transform: none;
+  }
+}

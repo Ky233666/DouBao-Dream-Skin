@@ -1,0 +1,12 @@
+artifacts/
+.agents/
+config/app.json
+config/theme.json
+themes/*
+!themes/.gitkeep
+/*.jpg
+/*.jpeg
+/*.png
+/*.webp
+*.log
+*.tmp
