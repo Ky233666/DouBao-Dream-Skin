@@ -12,7 +12,7 @@ const {
   validateDebuggerUrl,
 } = require("./cdp-client");
 
-const VERSION = "0.4.0";
+const VERSION = "0.5.0";
 const MAX_IMAGE_BYTES = 16 * 1024 * 1024;
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 const USER_THEME = path.join(PROJECT_ROOT, "config", "theme.json");
@@ -127,6 +127,10 @@ async function loadTheme(themePath) {
   if (!["auto", "dark", "light", "custom"].includes(textColorMode)) {
     throw new Error("textColorMode must be auto, dark, light, or custom");
   }
+  const componentStyle = assertShortText(raw.componentStyle, "componentStyle", "soft", 16).toLowerCase();
+  if (!["soft", "outline", "solid"].includes(componentStyle)) {
+    throw new Error("componentStyle must be soft, outline, or solid");
+  }
   const theme = {
     id: assertShortText(raw.id, "id", "custom", 80),
     name: assertShortText(raw.name, "name", "Doubao Dream Skin", 120),
@@ -139,7 +143,15 @@ async function loadTheme(themePath) {
     composerColor: assertCssColor(raw.composerColor, "composerColor", "rgba(255, 255, 255, 0.82)"),
     borderColor: assertCssColor(raw.borderColor, "borderColor", "rgba(0, 0, 0, 0.14)"),
     shadowColor: assertCssColor(raw.shadowColor, "shadowColor", "rgba(0, 0, 0, 0.16)"),
+    themePreset: assertShortText(raw.themePreset, "themePreset", "warm-glass", 40),
+    componentStyle,
     accentColor: assertCssColor(raw.accentColor, "accentColor", "#b85f4b"),
+    accentTextColor: assertCssColor(raw.accentTextColor, "accentTextColor", "#fffaf8"),
+    cardColor: assertCssColor(raw.cardColor, "cardColor", "rgba(255, 250, 246, 0.62)"),
+    userBubbleColor: assertCssColor(raw.userBubbleColor, "userBubbleColor", "rgba(184, 95, 75, 0.88)"),
+    assistantBubbleColor: assertCssColor(raw.assistantBubbleColor, "assistantBubbleColor", "rgba(255, 255, 255, 0.62)"),
+    cornerRadius: assertNumber(raw.cornerRadius, "cornerRadius", 18, 6, 32),
+    shadowStrength: assertNumber(raw.shadowStrength, "shadowStrength", 18, 0, 50),
     textColorMode,
     textColor: assertCssColor(raw.textColor, "textColor", "#1f2329"),
     mutedTextColor: assertCssColor(raw.mutedTextColor, "mutedTextColor", "#59636f"),
@@ -613,7 +625,9 @@ async function runSelfTest(options) {
   if (!loaded.payload.includes("doubao-dream-skin-background")) throw new Error("Payload is missing its background marker");
   if (!loaded.payload.includes("data:image/")) throw new Error("Payload is missing its embedded background image");
   if (!loaded.payload.includes("--dbs-main-text")) throw new Error("Payload is missing adaptive text colors");
+  if (!loaded.payload.includes("--dbs-user-bubble")) throw new Error("Payload is missing component theme colors");
   if (!["auto", "dark", "light", "custom"].includes(loaded.theme.textColorMode)) throw new Error("Text color mode was not normalized");
+  if (!["soft", "outline", "solid"].includes(loaded.theme.componentStyle)) throw new Error("Component style was not normalized");
   const frame = encodeClientFrame(0x1, Buffer.from("self-test", "utf8"));
   if (!(frame[1] & 0x80)) throw new Error("Client WebSocket frames must be masked");
   console.log(JSON.stringify({

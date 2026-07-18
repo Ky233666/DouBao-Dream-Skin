@@ -13,6 +13,14 @@
     "--dbs-border",
     "--dbs-shadow",
     "--dbs-accent",
+    "--dbs-accent-ink",
+    "--dbs-accent-soft",
+    "--dbs-card",
+    "--dbs-user-bubble",
+    "--dbs-assistant-bubble",
+    "--dbs-radius",
+    "--dbs-radius-sm",
+    "--dbs-elevation",
     "--dbs-overlay",
     "--dbs-blur",
     "--dbs-sidebar-text",
@@ -258,6 +266,7 @@
     const root = document.documentElement;
     currentPalette = resolveTextPalette(currentProfile);
     root.dataset.doubaoDreamSkin = VERSION;
+    root.dataset.doubaoDreamSkinStyle = THEME.componentStyle;
     root.dataset.doubaoDreamSkinText = [
       `sidebar-${currentPalette.sidebar.tone}`,
       `main-${currentPalette.main.tone}`,
@@ -269,6 +278,14 @@
     root.style.setProperty("--dbs-border", THEME.borderColor);
     root.style.setProperty("--dbs-shadow", THEME.shadowColor);
     root.style.setProperty("--dbs-accent", THEME.accentColor);
+    root.style.setProperty("--dbs-accent-ink", THEME.accentTextColor);
+    root.style.setProperty("--dbs-accent-soft", `color-mix(in srgb, ${THEME.accentColor} ${THEME.componentStyle === "solid" ? 28 : 16}%, transparent)`);
+    root.style.setProperty("--dbs-card", THEME.cardColor);
+    root.style.setProperty("--dbs-user-bubble", THEME.userBubbleColor);
+    root.style.setProperty("--dbs-assistant-bubble", THEME.assistantBubbleColor);
+    root.style.setProperty("--dbs-radius", `${THEME.cornerRadius}px`);
+    root.style.setProperty("--dbs-radius-sm", `${Math.max(6, Math.round(THEME.cornerRadius * 0.62))}px`);
+    root.style.setProperty("--dbs-elevation", `0 12px 36px rgba(15, 23, 42, ${(THEME.shadowStrength / 100).toFixed(2)})`);
     root.style.setProperty("--dbs-overlay", THEME.overlayColor);
     root.style.setProperty("--dbs-blur", `${THEME.blurPixels}px`);
     root.style.setProperty("--dbs-sidebar-text", currentPalette.sidebar.primary);
@@ -328,6 +345,7 @@
     const root = document.documentElement;
     delete root.dataset.doubaoDreamSkin;
     delete root.dataset.doubaoDreamSkinText;
+    delete root.dataset.doubaoDreamSkinStyle;
     for (const property of ROOT_VARIABLES) root.style.removeProperty(property);
     if (window.__doubaoDreamSkin?.fingerprint === FINGERPRINT) {
       delete window.__doubaoDreamSkin;

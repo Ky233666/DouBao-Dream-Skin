@@ -11,6 +11,7 @@
   let pendingImage = null;
   let pendingFileName = shared.DEFAULT_CONFIG.backgroundFileName;
   let previewAnalysisVersion = 0;
+  let activePreset = shared.DEFAULT_CONFIG.themePreset;
 
   const defaultBackground = [
     "radial-gradient(circle at 24% 24%, rgba(255, 238, 205, 0.96), rgba(246, 169, 140, 0) 42%)",
@@ -25,11 +26,33 @@
     ["sidebarAlpha", "%"],
     ["surfaceAlpha", "%"],
     ["composerAlpha", "%"],
+    ["cardAlpha", "%"],
+    ["userBubbleAlpha", "%"],
+    ["assistantBubbleAlpha", "%"],
+    ["cornerRadius", " px"],
+    ["shadowStrength", "%"],
   ];
+
+  const componentRangeFields = new Set([
+    "sidebarAlpha", "surfaceAlpha", "composerAlpha", "cardAlpha",
+    "userBubbleAlpha", "assistantBubbleAlpha", "cornerRadius", "shadowStrength",
+  ]);
+
+  function updatePresetState(presetId) {
+    activePreset = presetId;
+    document.querySelectorAll(".preset-button").forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.presetId === presetId));
+    });
+  }
+
+  function markCustomTheme() {
+    updatePresetState("custom");
+  }
 
   const updateOutput = (id, suffix) => { byId(`${id}Value`).textContent = `${byId(id).value}${suffix}`; };
   rangeFields.forEach(([id, suffix]) => byId(id).addEventListener("input", () => {
     updateOutput(id, suffix);
+    if (componentRangeFields.has(id)) markCustomTheme();
     updatePreview();
   }));
 
@@ -60,6 +83,16 @@
     preview.style.setProperty("--preview-sidebar", shared.hexToRgba(config.sidebarColor, config.sidebarAlpha));
     preview.style.setProperty("--preview-surface", shared.hexToRgba(config.surfaceColor, config.surfaceAlpha));
     preview.style.setProperty("--preview-composer", shared.hexToRgba(config.composerColor, config.composerAlpha));
+    preview.style.setProperty("--preview-accent", config.accentColor);
+    preview.style.setProperty("--preview-accent-ink", config.accentTextColor);
+    preview.style.setProperty("--preview-accent-soft", shared.hexToRgba(config.accentColor, config.componentStyle === "solid" ? 28 : 16));
+    preview.style.setProperty("--preview-card", shared.hexToRgba(config.cardColor, config.cardAlpha));
+    preview.style.setProperty("--preview-user-bubble", shared.hexToRgba(config.userBubbleColor, config.userBubbleAlpha));
+    preview.style.setProperty("--preview-assistant-bubble", shared.hexToRgba(config.assistantBubbleColor, config.assistantBubbleAlpha));
+    preview.style.setProperty("--preview-radius", `${config.cornerRadius}px`);
+    preview.style.setProperty("--preview-radius-sm", `${Math.max(6, Math.round(config.cornerRadius * 0.62))}px`);
+    preview.style.setProperty("--preview-elevation", `0 10px 28px rgba(15, 23, 42, ${(config.shadowStrength / 100).toFixed(2)})`);
+    preview.dataset.componentStyle = config.componentStyle;
     preview.style.setProperty("--preview-sidebar-text", palette.sidebar.primary);
     preview.style.setProperty("--preview-main-text", palette.main.primary);
     preview.style.setProperty("--preview-composer-text", palette.composer.primary);
@@ -106,11 +139,23 @@
     byId("surfaceAlpha").value = normalized.surfaceAlpha;
     byId("composerColor").value = normalized.composerColor;
     byId("composerAlpha").value = normalized.composerAlpha;
+    byId("componentStyle").value = normalized.componentStyle;
+    byId("accentColor").value = normalized.accentColor;
+    byId("accentTextColor").value = normalized.accentTextColor;
+    byId("cardColor").value = normalized.cardColor;
+    byId("cardAlpha").value = normalized.cardAlpha;
+    byId("userBubbleColor").value = normalized.userBubbleColor;
+    byId("userBubbleAlpha").value = normalized.userBubbleAlpha;
+    byId("assistantBubbleColor").value = normalized.assistantBubbleColor;
+    byId("assistantBubbleAlpha").value = normalized.assistantBubbleAlpha;
+    byId("cornerRadius").value = normalized.cornerRadius;
+    byId("shadowStrength").value = normalized.shadowStrength;
     byId("textColorMode").value = normalized.textColorMode;
     byId("textColor").value = normalized.textColor;
     byId("mutedTextColor").value = normalized.mutedTextColor;
     pendingImage = normalized.backgroundImage;
     pendingFileName = normalized.backgroundFileName;
+    updatePresetState(normalized.themePreset);
     updateTextControlState();
     rangeFields.forEach(([id, suffix]) => updateOutput(id, suffix));
     updatePreview();
@@ -131,19 +176,71 @@
       surfaceAlpha: byId("surfaceAlpha").value,
       composerColor: byId("composerColor").value,
       composerAlpha: byId("composerAlpha").value,
+      themePreset: activePreset,
+      componentStyle: byId("componentStyle").value,
+      accentColor: byId("accentColor").value,
+      accentTextColor: byId("accentTextColor").value,
+      cardColor: byId("cardColor").value,
+      cardAlpha: byId("cardAlpha").value,
+      userBubbleColor: byId("userBubbleColor").value,
+      userBubbleAlpha: byId("userBubbleAlpha").value,
+      assistantBubbleColor: byId("assistantBubbleColor").value,
+      assistantBubbleAlpha: byId("assistantBubbleAlpha").value,
+      cornerRadius: byId("cornerRadius").value,
+      shadowStrength: byId("shadowStrength").value,
       textColorMode: byId("textColorMode").value,
       textColor: byId("textColor").value,
       mutedTextColor: byId("mutedTextColor").value,
     });
   }
 
-  ["sidebarColor", "surfaceColor", "composerColor", "textColor", "mutedTextColor"].forEach((id) => {
-    byId(id).addEventListener("input", updatePreview);
+  [
+    "sidebarColor", "surfaceColor", "composerColor", "accentColor", "accentTextColor",
+    "cardColor", "userBubbleColor", "assistantBubbleColor", "textColor", "mutedTextColor",
+  ].forEach((id) => {
+    byId(id).addEventListener("input", () => {
+      if (!new Set(["textColor", "mutedTextColor"]).has(id)) markCustomTheme();
+      updatePreview();
+    });
+  });
+  byId("componentStyle").addEventListener("change", () => {
+    markCustomTheme();
+    updatePreview();
   });
   byId("textColorMode").addEventListener("change", () => {
     updateTextControlState();
     updatePreview();
   });
+
+  function renderPresetButtons() {
+    const list = byId("presetList");
+    const buttons = Object.values(shared.THEME_PRESETS).map((preset) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "preset-button";
+      button.dataset.presetId = preset.id;
+      button.style.setProperty("--preset-accent", preset.values.accentColor);
+      button.setAttribute("aria-pressed", "false");
+      button.title = preset.description;
+      const swatch = document.createElement("i");
+      swatch.style.background = `linear-gradient(135deg, ${preset.values.accentColor}, ${preset.values.cardColor})`;
+      const title = document.createElement("strong");
+      title.textContent = preset.name;
+      const description = document.createElement("small");
+      description.textContent = preset.description;
+      button.append(swatch, title, description);
+      button.addEventListener("click", () => {
+        const configured = shared.applyPreset(collect(), preset.id);
+        render(configured);
+        status.textContent = `已载入“${preset.name}”，点击保存并应用`;
+      });
+      return button;
+    });
+    list.replaceChildren(...buttons);
+    updatePresetState(activePreset);
+  }
+
+  renderPresetButtons();
 
   chrome.storage.local.get(shared.STORAGE_KEY, (result) => {
     render(result[shared.STORAGE_KEY] || shared.DEFAULT_CONFIG);

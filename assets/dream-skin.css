@@ -7,6 +7,14 @@
   --dbs-border: rgba(112, 65, 50, 0.20);
   --dbs-shadow: rgba(62, 28, 20, 0.18);
   --dbs-accent: #b85f4b;
+  --dbs-accent-ink: #fffaf8;
+  --dbs-accent-soft: rgba(184, 95, 75, 0.16);
+  --dbs-card: rgba(255, 250, 246, 0.62);
+  --dbs-user-bubble: rgba(184, 95, 75, 0.88);
+  --dbs-assistant-bubble: rgba(255, 255, 255, 0.62);
+  --dbs-radius: 18px;
+  --dbs-radius-sm: 11px;
+  --dbs-elevation: 0 12px 36px rgba(15, 23, 42, 0.18);
   --dbs-overlay: rgba(38, 19, 16, 0.16);
   --dbs-blur: 20px;
   --dbs-sidebar-text: #1f2329;
@@ -155,7 +163,8 @@
   border-color: var(--dbs-border) !important;
   color: var(--dbs-composer-text) !important;
   text-shadow: var(--dbs-composer-text-shadow);
-  box-shadow: 0 12px 36px var(--dbs-shadow) !important;
+  border-radius: var(--dbs-radius) !important;
+  box-shadow: var(--dbs-elevation) !important;
   -webkit-backdrop-filter: blur(var(--dbs-blur)) saturate(1.12);
   backdrop-filter: blur(var(--dbs-blur)) saturate(1.12);
 }
@@ -236,14 +245,229 @@
   color: var(--dbs-composer-muted) !important;
 }
 
-/* Keep controls legible without repainting every native component. */
-:root[data-doubao-dream-skin] button:hover,
-:root[data-doubao-dream-skin] [role="button"]:hover {
-  border-color: color-mix(in srgb, var(--dbs-accent) 35%, transparent) !important;
+/* Complete component theme: navigation, controls, cards, bubbles and overlays
+   all consume the same theme tokens instead of behaving like stock Doubao. */
+:root[data-doubao-dream-skin] :where(button, [role="button"], a, input, textarea, [contenteditable="true"]) {
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease,
+    box-shadow 150ms ease, transform 150ms ease, opacity 150ms ease;
+}
+
+:root[data-doubao-dream-skin] nav[class*="left-side" i] :where(button, [role="button"], a),
+:root[data-doubao-dream-skin] #flow_chat_sidebar :where(button, [role="button"], a) {
+  border-radius: var(--dbs-radius-sm) !important;
+}
+
+:root[data-doubao-dream-skin] nav[class*="left-side" i] :where(button, [role="button"], a):hover,
+:root[data-doubao-dream-skin] #flow_chat_sidebar :where(button, [role="button"], a):hover {
+  background-color: var(--dbs-accent-soft) !important;
+  border-color: var(--dbs-border) !important;
+}
+
+:root[data-doubao-dream-skin] nav[class*="left-side" i] :where(
+  [aria-current="page"],
+  [aria-selected="true"],
+  [data-state="active"],
+  [class*="bg-dbx-bg-float" i]
+),
+:root[data-doubao-dream-skin] #flow_chat_sidebar :where(
+  [aria-current="page"],
+  [aria-selected="true"],
+  [data-state="active"]
+) {
+  color: var(--dbs-accent-ink) !important;
+  background: linear-gradient(135deg, var(--dbs-accent), color-mix(in srgb, var(--dbs-accent) 76%, white)) !important;
+  border-color: color-mix(in srgb, var(--dbs-accent) 72%, transparent) !important;
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--dbs-accent) 24%, transparent) !important;
+}
+
+:root[data-doubao-dream-skin] nav[class*="left-side" i] :where(
+  [aria-current="page"],
+  [aria-selected="true"],
+  [data-state="active"],
+  [class*="bg-dbx-bg-float" i]
+) *,
+:root[data-doubao-dream-skin] #flow_chat_sidebar :where(
+  [aria-current="page"],
+  [aria-selected="true"],
+  [data-state="active"]
+) * {
+  color: var(--dbs-accent-ink) !important;
+}
+
+:root[data-doubao-dream-skin] :where(
+  .semi-button-primary,
+  button[class*="primary" i],
+  [role="button"][class*="primary" i],
+  [class*="bg-dbx-brand" i]
+) {
+  color: var(--dbs-accent-ink) !important;
+  background-color: var(--dbs-accent) !important;
+  border-color: color-mix(in srgb, var(--dbs-accent) 72%, black) !important;
+  border-radius: var(--dbs-radius-sm) !important;
+  box-shadow: 0 7px 18px color-mix(in srgb, var(--dbs-accent) 26%, transparent) !important;
+}
+
+:root[data-doubao-dream-skin] :where(
+  .semi-button-primary,
+  button[class*="primary" i],
+  [role="button"][class*="primary" i],
+  [class*="bg-dbx-brand" i]
+) * {
+  color: var(--dbs-accent-ink) !important;
+}
+
+:root[data-doubao-dream-skin] :where(
+  .semi-button-primary,
+  button[class*="primary" i],
+  [role="button"][class*="primary" i]
+):hover {
+  filter: brightness(1.06) saturate(1.05);
+  transform: translateY(-1px);
+}
+
+:root[data-doubao-dream-skin] :where(
+  #experiment-guidance-suggestions button,
+  #experiment-guidance-suggestions a,
+  #experiment-guidance-suggestions [role="button"],
+  #experiment-guidance-suggestions [class*="cursor-pointer" i][class*="bg-dbx-fill" i],
+  main [class*="suggestion-card" i],
+  main [class*="prompt-card" i],
+  main [class*="tool-card" i],
+  main [class*="recommend-card" i]
+) {
+  background: var(--dbs-card) !important;
+  border: 1px solid var(--dbs-border) !important;
+  border-radius: var(--dbs-radius-sm) !important;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--dbs-shadow) 72%, transparent) !important;
+  -webkit-backdrop-filter: blur(calc(var(--dbs-blur) * 0.58)) saturate(1.08);
+  backdrop-filter: blur(calc(var(--dbs-blur) * 0.58)) saturate(1.08);
+}
+
+:root[data-doubao-dream-skin] :where(
+  #experiment-guidance-suggestions button,
+  #experiment-guidance-suggestions a,
+  #experiment-guidance-suggestions [role="button"],
+  #experiment-guidance-suggestions [class*="cursor-pointer" i][class*="bg-dbx-fill" i],
+  main [class*="suggestion-card" i],
+  main [class*="prompt-card" i],
+  main [class*="tool-card" i],
+  main [class*="recommend-card" i]
+):hover {
+  border-color: color-mix(in srgb, var(--dbs-accent) 52%, transparent) !important;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--dbs-accent) 18%, transparent) !important;
+  transform: translateY(-1px);
+}
+
+:root[data-doubao-dream-skin] :where(
+  [role="dialog"],
+  [role="menu"],
+  .semi-modal-content,
+  .semi-popover-content,
+  [class*="popover-content" i],
+  [class*="dropdown-menu" i]
+) {
+  background-color: var(--dbs-card) !important;
+  border: 1px solid var(--dbs-border) !important;
+  border-radius: var(--dbs-radius) !important;
+  box-shadow: var(--dbs-elevation) !important;
+  -webkit-backdrop-filter: blur(var(--dbs-blur)) saturate(1.12);
+  backdrop-filter: blur(var(--dbs-blur)) saturate(1.12);
+}
+
+:root[data-doubao-dream-skin] :where(
+  [data-message-role="user"],
+  [data-role="user"],
+  [data-testid*="user-message" i],
+  [class*="user-message" i],
+  [class*="message-user" i]
+) :where([class*="bubble" i], [class*="message-content" i], [class*="content-wrapper" i]) {
+  color: var(--dbs-accent-ink) !important;
+  background-color: var(--dbs-user-bubble) !important;
+  border: 1px solid color-mix(in srgb, var(--dbs-accent) 42%, transparent) !important;
+  border-radius: var(--dbs-radius) var(--dbs-radius) 5px var(--dbs-radius) !important;
+  box-shadow: 0 7px 20px color-mix(in srgb, var(--dbs-shadow) 66%, transparent) !important;
+}
+
+:root[data-doubao-dream-skin] :where(
+  [data-message-role="assistant"],
+  [data-role="assistant"],
+  [data-testid*="assistant-message" i],
+  [class*="assistant-message" i],
+  [class*="message-assistant" i]
+) :where([class*="bubble" i], [class*="message-content" i], [class*="content-wrapper" i]) {
+  background-color: var(--dbs-assistant-bubble) !important;
+  border: 1px solid var(--dbs-border) !important;
+  border-radius: var(--dbs-radius) var(--dbs-radius) var(--dbs-radius) 5px !important;
+  box-shadow: 0 7px 20px color-mix(in srgb, var(--dbs-shadow) 58%, transparent) !important;
+}
+
+:root[data-doubao-dream-skin] :where(
+  [data-message-role="user"],
+  [data-role="user"],
+  [data-testid*="user-message" i],
+  [class*="user-message" i],
+  [class*="message-user" i]
+) :where([class*="bubble" i], [class*="message-content" i], [class*="content-wrapper" i]) * {
+  color: var(--dbs-accent-ink) !important;
+}
+
+:root[data-doubao-dream-skin] :where(input, textarea, [contenteditable="true"]):focus,
+:root[data-doubao-dream-skin] :where(input, textarea, [contenteditable="true"]):focus-visible {
+  outline: none !important;
+  border-color: color-mix(in srgb, var(--dbs-accent) 62%, transparent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dbs-accent) 18%, transparent) !important;
+}
+
+:root[data-doubao-dream-skin] :where(input[type="checkbox"], input[type="radio"], progress) {
+  accent-color: var(--dbs-accent) !important;
+}
+
+:root[data-doubao-dream-skin] main a:not([role="button"]) {
+  color: var(--dbs-accent) !important;
+  text-decoration-color: color-mix(in srgb, var(--dbs-accent) 46%, transparent);
+}
+
+:root[data-doubao-dream-skin] * {
+  scrollbar-color: color-mix(in srgb, var(--dbs-accent) 55%, transparent) transparent;
+  scrollbar-width: thin;
+}
+
+:root[data-doubao-dream-skin] *::-webkit-scrollbar { width: 8px; height: 8px; }
+:root[data-doubao-dream-skin] *::-webkit-scrollbar-track { background: transparent; }
+:root[data-doubao-dream-skin] *::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dbs-accent) 54%, transparent);
+  background-clip: padding-box;
+}
+
+:root[data-doubao-dream-skin][data-doubao-dream-skin-style="outline"] :where(
+  #experiment-guidance-suggestions :where(button, a, [role="button"], [class*="cursor-pointer" i][class*="bg-dbx-fill" i]),
+  [role="dialog"],
+  [role="menu"],
+  [class*="suggestion-card" i],
+  [class*="prompt-card" i],
+  [class*="tool-card" i]
+) {
+  box-shadow: none !important;
+  border-width: 1.5px !important;
+}
+
+:root[data-doubao-dream-skin][data-doubao-dream-skin-style="solid"] :where(
+  #experiment-guidance-suggestions :where(button, a, [role="button"], [class*="cursor-pointer" i][class*="bg-dbx-fill" i]),
+  [role="dialog"],
+  [role="menu"],
+  [class*="suggestion-card" i],
+  [class*="prompt-card" i],
+  [class*="tool-card" i]
+) {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 :root[data-doubao-dream-skin] ::selection {
-  background: color-mix(in srgb, var(--dbs-accent) 30%, transparent);
+  color: var(--dbs-accent-ink);
+  background: color-mix(in srgb, var(--dbs-accent) 72%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

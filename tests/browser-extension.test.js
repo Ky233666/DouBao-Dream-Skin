@@ -35,6 +35,13 @@ const normalized = shared.normalizeConfig({
   composerAlpha: 2,
   textColorMode: "script",
   textColor: "url(javascript:alert(1))",
+  themePreset: "javascript",
+  componentStyle: "broken",
+  accentColor: "url(javascript:alert(1))",
+  cardAlpha: -1,
+  userBubbleAlpha: 999,
+  cornerRadius: 100,
+  shadowStrength: -20,
   backgroundImage: "data:text/html;base64,PHNjcmlwdD4=",
 });
 assert.strictEqual(normalized.enabled, false);
@@ -46,8 +53,20 @@ assert.strictEqual(normalized.surfaceAlpha, 0);
 assert.strictEqual(normalized.composerAlpha, 20);
 assert.strictEqual(normalized.textColorMode, "auto");
 assert.strictEqual(normalized.textColor, shared.DEFAULT_CONFIG.textColor);
+assert.strictEqual(normalized.themePreset, shared.DEFAULT_CONFIG.themePreset);
+assert.strictEqual(normalized.componentStyle, shared.DEFAULT_CONFIG.componentStyle);
+assert.strictEqual(normalized.accentColor, shared.DEFAULT_CONFIG.accentColor);
+assert.strictEqual(normalized.cardAlpha, 20);
+assert.strictEqual(normalized.userBubbleAlpha, 100);
+assert.strictEqual(normalized.cornerRadius, 32);
+assert.strictEqual(normalized.shadowStrength, 0);
 assert.strictEqual(normalized.backgroundImage, null);
 assert.strictEqual(shared.hexToRgba("#0c2238", 42), "rgba(12, 34, 56, 0.42)");
+assert.strictEqual(Object.keys(shared.THEME_PRESETS).length, 4);
+const midnight = shared.applyPreset(shared.DEFAULT_CONFIG, "midnight-neon");
+assert.strictEqual(midnight.themePreset, "midnight-neon");
+assert.strictEqual(midnight.componentStyle, "solid");
+assert.strictEqual(midnight.accentColor, "#22d3ee");
 
 require(path.join(extensionRoot, "shared", "color-engine.js"));
 const colorEngine = globalThis.DoubaoDreamSkinColor;
@@ -86,7 +105,11 @@ assert(!/\beval\s*\(|new\s+Function\s*\(/.test(contentScript), "Remote or evalua
 for (const selector of ["#chat-route-layout", "#chat-route-main", "#flow_chat_sidebar", "#input-engine-container"]) {
   assert(contentCss.includes(selector), `Missing stable Doubao selector: ${selector}`);
 }
-for (const token of ["--dbsw-sidebar-text", "--dbsw-main-text", "--dbsw-composer-text"]) {
+for (const token of [
+  "--dbsw-sidebar-text", "--dbsw-main-text", "--dbsw-composer-text",
+  "--dbsw-accent", "--dbsw-card", "--dbsw-user-bubble", "--dbsw-assistant-bubble",
+  "--dbsw-radius", "--dbsw-elevation",
+]) {
   assert(contentScript.includes(token), `Missing adaptive text token: ${token}`);
   assert(contentCss.includes(token), `Missing adaptive text CSS token: ${token}`);
 }
@@ -97,7 +120,12 @@ for (const htmlPath of [manifest.action.default_popup, manifest.options_ui.page]
   assert(!/<script(?![^>]+\bsrc=)/i.test(html), `Inline script is not allowed: ${htmlPath}`);
 }
 const optionsHtml = fs.readFileSync(path.join(extensionRoot, manifest.options_ui.page), "utf8");
-for (const control of ["textColorMode", "textColor", "mutedTextColor", "textAnalysis"]) {
+for (const control of [
+  "textColorMode", "textColor", "mutedTextColor", "textAnalysis", "presetList",
+  "componentStyle", "accentColor", "accentTextColor", "cardColor", "cardAlpha",
+  "userBubbleColor", "userBubbleAlpha", "assistantBubbleColor", "assistantBubbleAlpha",
+  "cornerRadius", "shadowStrength",
+]) {
   assert(optionsHtml.includes(`id="${control}"`), `Missing text color setting: ${control}`);
 }
 

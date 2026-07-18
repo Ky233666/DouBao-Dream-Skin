@@ -229,6 +229,32 @@ function Add-SolidColorRow {
     return $colorButton
 }
 
+function Set-StudioColorOpacityRow {
+    param(
+        $Row,
+        [string]$Value,
+        [int]$FallbackRed,
+        [int]$FallbackGreen,
+        [int]$FallbackBlue,
+        [int]$FallbackAlpha
+    )
+    $parsed = Get-ThemeColor -Value $Value -FallbackRed $FallbackRed -FallbackGreen $FallbackGreen -FallbackBlue $FallbackBlue -FallbackAlpha $FallbackAlpha
+    Update-ColorButton -Button $Row.ColorButton -Color $parsed.Color
+    $Row.AlphaTrack.Value = [Math]::Max($Row.AlphaTrack.Minimum, [Math]::Min($Row.AlphaTrack.Maximum, $parsed.Alpha))
+}
+
+function Set-StudioSolidColor {
+    param(
+        [System.Windows.Forms.Button]$Button,
+        [string]$Value,
+        [int]$FallbackRed,
+        [int]$FallbackGreen,
+        [int]$FallbackBlue
+    )
+    $parsed = Get-ThemeColor -Value $Value -FallbackRed $FallbackRed -FallbackGreen $FallbackGreen -FallbackBlue $FallbackBlue -FallbackAlpha 100
+    Update-ColorButton -Button $Button -Color $parsed.Color
+}
+
 function Resolve-ThemeImagePath {
     param($Theme)
     $candidate = Join-Path (Split-Path -Parent $themePath) ([string]$Theme.backgroundImage)
@@ -307,17 +333,26 @@ $theme = Read-StudioTheme
 $sidebarInitial = Get-ThemeColor -Value ([string]$theme.sidebarColor) -FallbackRed 255 -FallbackGreen 241 -FallbackBlue 232 -FallbackAlpha 48
 $surfaceInitial = Get-ThemeColor -Value ([string]$theme.surfaceColor) -FallbackRed 255 -FallbackGreen 250 -FallbackBlue 246 -FallbackAlpha 35
 $composerInitial = Get-ThemeColor -Value ([string]$theme.composerColor) -FallbackRed 255 -FallbackGreen 252 -FallbackBlue 249 -FallbackAlpha 82
+$cardInitial = Get-ThemeColor -Value ([string](Get-StudioThemeValue -Theme $theme -Name 'cardColor' -Fallback 'rgba(255, 250, 246, 0.62)')) -FallbackRed 255 -FallbackGreen 250 -FallbackBlue 246 -FallbackAlpha 62
+$userBubbleInitial = Get-ThemeColor -Value ([string](Get-StudioThemeValue -Theme $theme -Name 'userBubbleColor' -Fallback 'rgba(184, 95, 75, 0.88)')) -FallbackRed 184 -FallbackGreen 95 -FallbackBlue 75 -FallbackAlpha 88
+$assistantBubbleInitial = Get-ThemeColor -Value ([string](Get-StudioThemeValue -Theme $theme -Name 'assistantBubbleColor' -Fallback 'rgba(255, 255, 255, 0.62)')) -FallbackRed 255 -FallbackGreen 255 -FallbackBlue 255 -FallbackAlpha 62
+$accentInitial = Get-ThemeColor -Value ([string](Get-StudioThemeValue -Theme $theme -Name 'accentColor' -Fallback '#b85f4b')) -FallbackRed 184 -FallbackGreen 95 -FallbackBlue 75 -FallbackAlpha 100
+$accentTextInitial = Get-ThemeColor -Value ([string](Get-StudioThemeValue -Theme $theme -Name 'accentTextColor' -Fallback '#fffaf8')) -FallbackRed 255 -FallbackGreen 250 -FallbackBlue 248 -FallbackAlpha 100
 $textInitial = Get-ThemeColor -Value ([string](Get-StudioThemeValue -Theme $theme -Name 'textColor' -Fallback '#1f2329')) -FallbackRed 31 -FallbackGreen 35 -FallbackBlue 41 -FallbackAlpha 100
 $mutedTextInitial = Get-ThemeColor -Value ([string](Get-StudioThemeValue -Theme $theme -Name 'mutedTextColor' -Fallback '#59636f')) -FallbackRed 89 -FallbackGreen 99 -FallbackBlue 111 -FallbackAlpha 100
 $initialTextMode = [string](Get-StudioThemeValue -Theme $theme -Name 'textColorMode' -Fallback 'auto')
 if ($initialTextMode -notin @('auto', 'dark', 'light', 'custom')) { $initialTextMode = 'auto' }
+$initialComponentStyle = [string](Get-StudioThemeValue -Theme $theme -Name 'componentStyle' -Fallback 'soft')
+if ($initialComponentStyle -notin @('soft', 'outline', 'solid')) { $initialComponentStyle = 'soft' }
+$initialThemePreset = [string](Get-StudioThemeValue -Theme $theme -Name 'themePreset' -Fallback 'warm-glass')
+if ($initialThemePreset -notin @('warm-glass', 'midnight-neon', 'sakura-dream', 'ocean-breeze', 'custom')) { $initialThemePreset = 'warm-glass' }
 $form = New-Object System.Windows.Forms.Form
 $form.Text = '豆包梦幻皮肤设置'
 $form.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
 $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
 $form.MaximizeBox = $false
 $form.MinimizeBox = $false
-$form.ClientSize = New-Object System.Drawing.Size(610, 690)
+$form.ClientSize = New-Object System.Drawing.Size(610, 880)
 $form.BackColor = [System.Drawing.Color]::FromArgb(250, 246, 243)
 $form.Font = New-Object System.Drawing.Font('Microsoft YaHei UI', 9)
 
@@ -328,7 +363,7 @@ $title.SetBounds(22, 16, 260, 34)
 $form.Controls.Add($title)
 
 $subtitle = New-Object System.Windows.Forms.Label
-$subtitle.Text = '选择背景并调整玻璃效果；运行中的皮肤会自动更新。'
+$subtitle.Text = '选择完整主题、背景和组件效果；运行中的皮肤会自动更新。'
 $subtitle.ForeColor = [System.Drawing.Color]::FromArgb(110, 96, 90)
 $subtitle.SetBounds(24, 52, 480, 22)
 $form.Controls.Add($subtitle)
@@ -352,12 +387,12 @@ $form.Controls.Add($browseButton)
 
 $statusLabel = New-Object System.Windows.Forms.Label
 $statusLabel.ForeColor = [System.Drawing.Color]::FromArgb(116, 77, 65)
-$statusLabel.SetBounds(24, 605, 562, 24)
+$statusLabel.SetBounds(24, 795, 562, 24)
 $statusLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleRight
 $form.Controls.Add($statusLabel)
 
 $tabs = New-Object System.Windows.Forms.TabControl
-$tabs.SetBounds(24, 310, 562, 288)
+$tabs.SetBounds(24, 310, 562, 480)
 $form.Controls.Add($tabs)
 
 $commonTab = New-Object System.Windows.Forms.TabPage
@@ -374,6 +409,11 @@ $textTab = New-Object System.Windows.Forms.TabPage
 $textTab.Text = '文字与对比度'
 $textTab.BackColor = [System.Drawing.Color]::FromArgb(250, 246, 243)
 $tabs.TabPages.Add($textTab)
+
+$themeTab = New-Object System.Windows.Forms.TabPage
+$themeTab.Text = '组件主题'
+$themeTab.BackColor = [System.Drawing.Color]::FromArgb(250, 246, 243)
+$tabs.TabPages.Add($themeTab)
 
 $brightnessTrack = Add-TrackRow -Parent $commonTab -Label '背景亮度' -Top 10 -Minimum 50 -Maximum 130 -Value ([int]([double]$theme.backgroundBrightness * 100)) -Suffix '%'
 $saturationTrack = Add-TrackRow -Parent $commonTab -Label '背景饱和度' -Top 54 -Minimum 0 -Maximum 200 -Value ([int]([double]$theme.backgroundSaturation * 100)) -Suffix '%'
@@ -446,28 +486,97 @@ $updateTextControls = {
 $textModeBox.Add_SelectedIndexChanged({ & $updateTextControls })
 & $updateTextControls
 
+$presetLabel = New-Object System.Windows.Forms.Label
+$presetLabel.Text = '主题预设'
+$presetLabel.SetBounds(12, 20, 88, 24)
+$themeTab.Controls.Add($presetLabel)
+
+$themePresetBox = New-Object System.Windows.Forms.ComboBox
+$themePresetBox.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
+$null = $themePresetBox.Items.Add('暖霞玻璃')
+$null = $themePresetBox.Items.Add('午夜霓虹')
+$null = $themePresetBox.Items.Add('樱花梦境')
+$null = $themePresetBox.Items.Add('海盐微风')
+$themePresetBox.SetBounds(100, 16, 220, 30)
+$presetIds = [string[]]@('warm-glass', 'midnight-neon', 'sakura-dream', 'ocean-breeze')
+$presetIndex = [Array]::IndexOf($presetIds, $initialThemePreset)
+if ($presetIndex -lt 0) { $presetIndex = 0 }
+$themePresetBox.SelectedIndex = $presetIndex
+$themeTab.Controls.Add($themePresetBox)
+
+$applyPresetButton = New-Object System.Windows.Forms.Button
+$applyPresetButton.Text = '载入整套预设'
+$applyPresetButton.SetBounds(336, 15, 150, 32)
+$themeTab.Controls.Add($applyPresetButton)
+
+$componentStyleLabel = New-Object System.Windows.Forms.Label
+$componentStyleLabel.Text = '组件风格'
+$componentStyleLabel.SetBounds(12, 62, 88, 24)
+$themeTab.Controls.Add($componentStyleLabel)
+
+$componentStyleBox = New-Object System.Windows.Forms.ComboBox
+$componentStyleBox.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
+$null = $componentStyleBox.Items.Add('柔和玻璃')
+$null = $componentStyleBox.Items.Add('清晰描边')
+$null = $componentStyleBox.Items.Add('沉浸实体')
+$componentStyleBox.SetBounds(100, 58, 220, 30)
+$componentStyleBox.SelectedIndex = [Array]::IndexOf([string[]]@('soft', 'outline', 'solid'), $initialComponentStyle)
+$themeTab.Controls.Add($componentStyleBox)
+
+$accentColorButton = Add-SolidColorRow -Parent $themeTab -Label '主题强调色' -Top 100 -Initial $accentInitial -Description '导航、按钮、链接和焦点'
+$accentTextColorButton = Add-SolidColorRow -Parent $themeTab -Label '强调文字' -Top 140 -Initial $accentTextInitial -Description '主题按钮和用户气泡文字'
+$cardRow = Add-ColorOpacityRow -Parent $themeTab -Label '功能卡片' -Top 182 -Initial $cardInitial -MinimumAlpha 20
+$userBubbleRow = Add-ColorOpacityRow -Parent $themeTab -Label '用户气泡' -Top 238 -Initial $userBubbleInitial -MinimumAlpha 25
+$assistantBubbleRow = Add-ColorOpacityRow -Parent $themeTab -Label '豆包气泡' -Top 294 -Initial $assistantBubbleInitial -MinimumAlpha 20
+$cornerRadiusTrack = Add-TrackRow -Parent $themeTab -Label '组件圆角' -Top 354 -Minimum 6 -Maximum 32 -Value ([int](Get-StudioThemeValue -Theme $theme -Name 'cornerRadius' -Fallback 18)) -Suffix ' px'
+$shadowStrengthTrack = Add-TrackRow -Parent $themeTab -Label '立体阴影' -Top 398 -Minimum 0 -Maximum 50 -Value ([int](Get-StudioThemeValue -Theme $theme -Name 'shadowStrength' -Fallback 18)) -Suffix '%'
+
+$applyThemePreset = {
+    $presetId = $presetIds[$themePresetBox.SelectedIndex]
+    $preset = switch ($presetId) {
+        'midnight-neon' { [pscustomobject]@{ Style = 'solid'; Sidebar = 'rgba(17, 24, 39, 0.74)'; Surface = 'rgba(15, 23, 42, 0.52)'; Composer = 'rgba(17, 24, 39, 0.90)'; Accent = '#22d3ee'; AccentText = '#06242b'; Card = 'rgba(23, 32, 51, 0.82)'; User = 'rgba(21, 94, 117, 0.94)'; Assistant = 'rgba(30, 41, 59, 0.86)'; Radius = 20; Shadow = 34 } }
+        'sakura-dream' { [pscustomobject]@{ Style = 'soft'; Sidebar = 'rgba(255, 240, 246, 0.58)'; Surface = 'rgba(255, 247, 251, 0.42)'; Composer = 'rgba(255, 249, 252, 0.88)'; Accent = '#e85d8e'; AccentText = '#ffffff'; Card = 'rgba(255, 240, 247, 0.72)'; User = 'rgba(232, 93, 142, 0.88)'; Assistant = 'rgba(255, 247, 251, 0.78)'; Radius = 22; Shadow = 20 } }
+        'ocean-breeze' { [pscustomobject]@{ Style = 'outline'; Sidebar = 'rgba(232, 247, 247, 0.60)'; Surface = 'rgba(243, 251, 251, 0.38)'; Composer = 'rgba(247, 253, 253, 0.88)'; Accent = '#147d92'; AccentText = '#ffffff'; Card = 'rgba(238, 250, 250, 0.72)'; User = 'rgba(20, 125, 146, 0.86)'; Assistant = 'rgba(247, 253, 253, 0.78)'; Radius = 16; Shadow = 10 } }
+        default { [pscustomobject]@{ Style = 'soft'; Sidebar = 'rgba(255, 241, 232, 0.48)'; Surface = 'rgba(255, 250, 246, 0.35)'; Composer = 'rgba(255, 252, 249, 0.82)'; Accent = '#b85f4b'; AccentText = '#fffaf8'; Card = 'rgba(255, 250, 246, 0.62)'; User = 'rgba(184, 95, 75, 0.88)'; Assistant = 'rgba(255, 255, 255, 0.62)'; Radius = 18; Shadow = 18 } }
+    }
+    $componentStyleBox.SelectedIndex = [Array]::IndexOf([string[]]@('soft', 'outline', 'solid'), $preset.Style)
+    Set-StudioColorOpacityRow -Row $sidebarRow -Value $preset.Sidebar -FallbackRed 255 -FallbackGreen 241 -FallbackBlue 232 -FallbackAlpha 48
+    Set-StudioColorOpacityRow -Row $surfaceRow -Value $preset.Surface -FallbackRed 255 -FallbackGreen 250 -FallbackBlue 246 -FallbackAlpha 35
+    Set-StudioColorOpacityRow -Row $composerRow -Value $preset.Composer -FallbackRed 255 -FallbackGreen 252 -FallbackBlue 249 -FallbackAlpha 82
+    Set-StudioSolidColor -Button $accentColorButton -Value $preset.Accent -FallbackRed 184 -FallbackGreen 95 -FallbackBlue 75
+    Set-StudioSolidColor -Button $accentTextColorButton -Value $preset.AccentText -FallbackRed 255 -FallbackGreen 250 -FallbackBlue 248
+    Set-StudioColorOpacityRow -Row $cardRow -Value $preset.Card -FallbackRed 255 -FallbackGreen 250 -FallbackBlue 246 -FallbackAlpha 62
+    Set-StudioColorOpacityRow -Row $userBubbleRow -Value $preset.User -FallbackRed 184 -FallbackGreen 95 -FallbackBlue 75 -FallbackAlpha 88
+    Set-StudioColorOpacityRow -Row $assistantBubbleRow -Value $preset.Assistant -FallbackRed 255 -FallbackGreen 255 -FallbackBlue 255 -FallbackAlpha 62
+    $cornerRadiusTrack.Value = $preset.Radius
+    $shadowStrengthTrack.Value = $preset.Shadow
+    $textModeBox.SelectedIndex = 0
+    $statusLabel.Text = "已载入整套主题预设，点击保存并应用"
+}
+$applyPresetButton.Add_Click({ & $applyThemePreset })
+
 $saveButton = New-Object System.Windows.Forms.Button
 $saveButton.Text = '保存并应用'
 $saveButton.Font = New-Object System.Drawing.Font('Microsoft YaHei UI', 9, [System.Drawing.FontStyle]::Bold)
 $saveButton.BackColor = [System.Drawing.Color]::FromArgb(184, 95, 75)
 $saveButton.ForeColor = [System.Drawing.Color]::White
 $saveButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-$saveButton.SetBounds(24, 635, 160, 42)
+$saveButton.SetBounds(24, 825, 160, 42)
 $form.Controls.Add($saveButton)
 
 $startButton = New-Object System.Windows.Forms.Button
 $startButton.Text = '启动皮肤'
-$startButton.SetBounds(198, 635, 126, 42)
+$startButton.SetBounds(198, 825, 126, 42)
 $form.Controls.Add($startButton)
 
 $restoreButton = New-Object System.Windows.Forms.Button
 $restoreButton.Text = '恢复官方外观'
-$restoreButton.SetBounds(338, 635, 126, 42)
+$restoreButton.SetBounds(338, 825, 126, 42)
 $form.Controls.Add($restoreButton)
 
 $closeButton = New-Object System.Windows.Forms.Button
 $closeButton.Text = '关闭'
-$closeButton.SetBounds(478, 635, 108, 42)
+$closeButton.SetBounds(478, 825, 108, 42)
 $form.Controls.Add($closeButton)
 
 $browseButton.Add_Click({
@@ -504,6 +613,16 @@ $saveButton.Add_Click({
         $current.sidebarColor = Format-StudioRgba -Color ([System.Drawing.Color]$sidebarRow.ColorButton.Tag) -AlphaPercent $sidebarRow.AlphaTrack.Value
         $current.surfaceColor = Format-StudioRgba -Color ([System.Drawing.Color]$surfaceRow.ColorButton.Tag) -AlphaPercent $surfaceRow.AlphaTrack.Value
         $current.composerColor = Format-StudioRgba -Color ([System.Drawing.Color]$composerRow.ColorButton.Tag) -AlphaPercent $composerRow.AlphaTrack.Value
+        $current | Add-Member -NotePropertyName themePreset -NotePropertyValue $presetIds[$themePresetBox.SelectedIndex] -Force
+        $componentStyles = [string[]]@('soft', 'outline', 'solid')
+        $current | Add-Member -NotePropertyName componentStyle -NotePropertyValue $componentStyles[$componentStyleBox.SelectedIndex] -Force
+        $current | Add-Member -NotePropertyName accentColor -NotePropertyValue (Format-StudioHex -Color ([System.Drawing.Color]$accentColorButton.Tag)) -Force
+        $current | Add-Member -NotePropertyName accentTextColor -NotePropertyValue (Format-StudioHex -Color ([System.Drawing.Color]$accentTextColorButton.Tag)) -Force
+        $current | Add-Member -NotePropertyName cardColor -NotePropertyValue (Format-StudioRgba -Color ([System.Drawing.Color]$cardRow.ColorButton.Tag) -AlphaPercent $cardRow.AlphaTrack.Value) -Force
+        $current | Add-Member -NotePropertyName userBubbleColor -NotePropertyValue (Format-StudioRgba -Color ([System.Drawing.Color]$userBubbleRow.ColorButton.Tag) -AlphaPercent $userBubbleRow.AlphaTrack.Value) -Force
+        $current | Add-Member -NotePropertyName assistantBubbleColor -NotePropertyValue (Format-StudioRgba -Color ([System.Drawing.Color]$assistantBubbleRow.ColorButton.Tag) -AlphaPercent $assistantBubbleRow.AlphaTrack.Value) -Force
+        $current | Add-Member -NotePropertyName cornerRadius -NotePropertyValue $cornerRadiusTrack.Value -Force
+        $current | Add-Member -NotePropertyName shadowStrength -NotePropertyValue $shadowStrengthTrack.Value -Force
         $textModes = [string[]]@('auto', 'dark', 'light', 'custom')
         $current | Add-Member -NotePropertyName textColorMode -NotePropertyValue $textModes[$textModeBox.SelectedIndex] -Force
         $current | Add-Member -NotePropertyName textColor -NotePropertyValue (Format-StudioHex -Color ([System.Drawing.Color]$textColorButton.Tag)) -Force
@@ -557,7 +676,7 @@ if ($SelfTest) {
     if ((Format-StudioHex -Color $parsedTestColor.Color) -ne '#0C2238') {
         throw 'Theme Studio hexadecimal color formatting self-test failed.'
     }
-    if ($null -eq $saturationTrack -or $null -eq $sidebarRow -or $null -eq $surfaceRow -or $null -eq $composerRow -or $null -eq $textModeBox -or $null -eq $textColorButton -or $null -eq $mutedTextColorButton) {
+    if ($null -eq $saturationTrack -or $null -eq $sidebarRow -or $null -eq $surfaceRow -or $null -eq $composerRow -or $null -eq $textModeBox -or $null -eq $textColorButton -or $null -eq $mutedTextColorButton -or $null -eq $themePresetBox -or $null -eq $componentStyleBox -or $null -eq $accentColorButton -or $null -eq $cardRow -or $null -eq $userBubbleRow -or $null -eq $assistantBubbleRow -or $null -eq $cornerRadiusTrack -or $null -eq $shadowStrengthTrack) {
         throw 'Theme Studio advanced controls did not initialize.'
     }
     Write-Output "Theme Studio self-test passed: $($theme.name)"

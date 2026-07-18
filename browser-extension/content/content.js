@@ -57,6 +57,7 @@
     hostObserver = null;
     delete document.documentElement.dataset[MARKER];
     delete document.documentElement.dataset.doubaoDreamSkinText;
+    delete document.documentElement.dataset.doubaoDreamSkinStyle;
     document.getElementById(BACKGROUND_ID)?.remove();
     [
       "--dbsw-sidebar",
@@ -76,6 +77,15 @@
       "--dbsw-main-text-shadow",
       "--dbsw-composer-text-shadow",
       "--dbsw-color-scheme",
+      "--dbsw-accent",
+      "--dbsw-accent-ink",
+      "--dbsw-accent-soft",
+      "--dbsw-card",
+      "--dbsw-user-bubble",
+      "--dbsw-assistant-bubble",
+      "--dbsw-radius",
+      "--dbsw-radius-sm",
+      "--dbsw-elevation",
     ].forEach((name) => document.documentElement.style.removeProperty(name));
   }
 
@@ -116,13 +126,23 @@
     }
 
     document.documentElement.dataset[MARKER] = "enabled";
+    document.documentElement.dataset.doubaoDreamSkinStyle = currentConfig.componentStyle;
     setVariable("--dbsw-sidebar", shared.hexToRgba(currentConfig.sidebarColor, currentConfig.sidebarAlpha));
     setVariable("--dbsw-surface", shared.hexToRgba(currentConfig.surfaceColor, currentConfig.surfaceAlpha));
     setVariable("--dbsw-composer", shared.hexToRgba(currentConfig.composerColor, currentConfig.composerAlpha));
-    setVariable("--dbsw-border", "rgba(80, 57, 50, 0.18)");
-    setVariable("--dbsw-shadow", "rgba(48, 28, 22, 0.18)");
+    setVariable("--dbsw-border", shared.hexToRgba(currentConfig.accentColor, currentConfig.componentStyle === "outline" ? 34 : 20));
+    setVariable("--dbsw-shadow", `rgba(15, 23, 42, ${(currentConfig.shadowStrength / 100).toFixed(2)})`);
     setVariable("--dbsw-overlay", "rgba(28, 18, 16, 0.08)");
     setVariable("--dbsw-blur", `${currentConfig.blurPixels}px`);
+    setVariable("--dbsw-accent", currentConfig.accentColor);
+    setVariable("--dbsw-accent-ink", currentConfig.accentTextColor);
+    setVariable("--dbsw-accent-soft", shared.hexToRgba(currentConfig.accentColor, currentConfig.componentStyle === "solid" ? 28 : 16));
+    setVariable("--dbsw-card", shared.hexToRgba(currentConfig.cardColor, currentConfig.cardAlpha));
+    setVariable("--dbsw-user-bubble", shared.hexToRgba(currentConfig.userBubbleColor, currentConfig.userBubbleAlpha));
+    setVariable("--dbsw-assistant-bubble", shared.hexToRgba(currentConfig.assistantBubbleColor, currentConfig.assistantBubbleAlpha));
+    setVariable("--dbsw-radius", `${currentConfig.cornerRadius}px`);
+    setVariable("--dbsw-radius-sm", `${Math.max(6, Math.round(currentConfig.cornerRadius * 0.62))}px`);
+    setVariable("--dbsw-elevation", `0 12px 36px rgba(15, 23, 42, ${(currentConfig.shadowStrength / 100).toFixed(2)})`);
     updateTextPalette();
     ensureBackground();
     observeBackgroundHost();

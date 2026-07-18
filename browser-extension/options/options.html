@@ -28,13 +28,26 @@
         <div class="preview-ui">
           <aside class="preview-sidebar">
             <strong>豆包</strong>
-            <span>新对话</span>
+            <span class="preview-nav-active">✦ 新对话</span>
+            <span class="preview-nav-item">AI 创作</span>
             <small>历史对话</small>
           </aside>
           <div class="preview-main">
             <strong>有什么我能帮你的吗？</strong>
-            <span>智能文字会根据背景自动选择深色或浅色</span>
-            <div class="preview-composer">发送消息或按住空格说话…</div>
+            <span>完整主题会统一按钮、卡片、气泡与交互状态</span>
+            <div class="preview-suggestions">
+              <span>帮我整理灵感</span>
+              <span>生成一份计划</span>
+              <span>分析这张图片</span>
+            </div>
+            <div class="preview-bubbles">
+              <span class="preview-assistant-bubble">当然，可以从主题令牌开始。</span>
+              <span class="preview-user-bubble">让所有组件风格统一。</span>
+            </div>
+            <div class="preview-composer">
+              <span>发送消息或按住空格说话…</span>
+              <b>发送</b>
+            </div>
           </div>
         </div>
       </div>
@@ -49,6 +62,14 @@
           <button id="removeBackground" class="ghost" type="button">使用内置背景</button>
         </div>
       </div>
+    </section>
+
+    <section class="preset-card" aria-labelledby="presetTitle">
+      <div>
+        <h2 id="presetTitle">一键主题预设</h2>
+        <p class="section-note">预设会成套替换界面组件颜色和造型，不会替换你选择的背景图片。</p>
+      </div>
+      <div id="presetList" class="preset-list"></div>
     </section>
 
     <div class="settings-grid">
@@ -104,6 +125,64 @@
           <input id="composerColor" type="color">
           <input id="composerAlpha" type="range" min="20" max="100" step="1">
           <output id="composerAlphaValue"></output>
+        </div>
+      </section>
+
+      <section class="card component-card">
+        <h2>组件主题</h2>
+        <p class="section-note">控制整个界面的视觉语言，而不只是玻璃背景。</p>
+
+        <div class="component-settings">
+          <div>
+            <label class="select-row" for="componentStyle">
+              <span>组件风格</span>
+              <select id="componentStyle">
+                <option value="soft">柔和玻璃</option>
+                <option value="outline">清晰描边</option>
+                <option value="solid">沉浸实体</option>
+              </select>
+            </label>
+            <div class="solid-color-row">
+              <label for="accentColor">主题强调色</label>
+              <input id="accentColor" type="color">
+              <span>导航选中态、按钮、链接、焦点和滚动条</span>
+            </div>
+            <div class="solid-color-row">
+              <label for="accentTextColor">强调文字</label>
+              <input id="accentTextColor" type="color">
+              <span>显示在主题按钮和用户气泡上的文字</span>
+            </div>
+            <label class="range-row" for="cornerRadius">
+              <span>组件圆角</span>
+              <input id="cornerRadius" type="range" min="6" max="32" step="1">
+              <output id="cornerRadiusValue"></output>
+            </label>
+            <label class="range-row" for="shadowStrength">
+              <span>立体阴影</span>
+              <input id="shadowStrength" type="range" min="0" max="50" step="1">
+              <output id="shadowStrengthValue"></output>
+            </label>
+          </div>
+          <div>
+            <div class="color-row">
+              <label for="cardColor">功能卡片</label>
+              <input id="cardColor" type="color">
+              <input id="cardAlpha" type="range" min="20" max="100" step="1">
+              <output id="cardAlphaValue"></output>
+            </div>
+            <div class="color-row">
+              <label for="userBubbleColor">用户气泡</label>
+              <input id="userBubbleColor" type="color">
+              <input id="userBubbleAlpha" type="range" min="25" max="100" step="1">
+              <output id="userBubbleAlphaValue"></output>
+            </div>
+            <div class="color-row">
+              <label for="assistantBubbleColor">豆包气泡</label>
+              <input id="assistantBubbleColor" type="color">
+              <input id="assistantBubbleAlpha" type="range" min="20" max="100" step="1">
+              <output id="assistantBubbleAlphaValue"></output>
+            </div>
+          </div>
         </div>
       </section>
 
