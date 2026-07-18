@@ -23,7 +23,21 @@
 
   <main class="page">
     <section class="preview-card">
-      <div id="preview" class="preview" role="img" aria-label="背景图片预览"></div>
+      <div id="preview" class="preview" role="img" aria-label="背景与文字配色预览">
+        <div id="previewBackground" class="preview-background" aria-hidden="true"></div>
+        <div class="preview-ui">
+          <aside class="preview-sidebar">
+            <strong>豆包</strong>
+            <span>新对话</span>
+            <small>历史对话</small>
+          </aside>
+          <div class="preview-main">
+            <strong>有什么我能帮你的吗？</strong>
+            <span>智能文字会根据背景自动选择深色或浅色</span>
+            <div class="preview-composer">发送消息或按住空格说话…</div>
+          </div>
+        </div>
+      </div>
       <div class="preview-actions">
         <div>
           <strong id="backgroundName">内置渐变背景</strong>
@@ -92,6 +106,38 @@
           <output id="composerAlphaValue"></output>
         </div>
       </section>
+
+      <section class="card text-card">
+        <h2>文字与智能对比度</h2>
+        <p class="section-note">自动模式会分别分析侧栏、主区域和输入框，选择更清晰的深色或浅色文字。</p>
+
+        <div class="text-settings">
+          <div class="text-controls">
+            <label class="select-row" for="textColorMode">
+              <span>文字模式</span>
+              <select id="textColorMode">
+                <option value="auto">智能适配（推荐）</option>
+                <option value="dark">固定深色文字</option>
+                <option value="light">固定浅色文字</option>
+                <option value="custom">自定义颜色</option>
+              </select>
+            </label>
+            <div class="solid-color-row">
+              <label for="textColor">主要文字</label>
+              <input id="textColor" type="color">
+              <span>标题、正文与常用按钮</span>
+            </div>
+            <div class="solid-color-row">
+              <label for="mutedTextColor">次要文字</label>
+              <input id="mutedTextColor" type="color">
+              <span>提示、时间与占位文字</span>
+            </div>
+          </div>
+          <div id="textAnalysis" class="contrast-report" aria-live="polite">
+            正在分析背景和玻璃区域…
+          </div>
+        </div>
+      </section>
     </div>
 
     <div class="action-bar">
@@ -105,6 +151,7 @@
   </main>
 
   <script src="../shared/defaults.js"></script>
+  <script src="../shared/color-engine.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

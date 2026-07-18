@@ -61,6 +61,19 @@ function Read-StudioTheme {
     return (Get-Content -LiteralPath $themePath -Raw -Encoding UTF8 | ConvertFrom-Json)
 }
 
+function Get-StudioThemeValue {
+    param(
+        $Theme,
+        [string]$Name,
+        $Fallback
+    )
+    $property = $Theme.PSObject.Properties[$Name]
+    if ($null -eq $property -or $null -eq $property.Value -or [string]::IsNullOrWhiteSpace([string]$property.Value)) {
+        return $Fallback
+    }
+    return $property.Value
+}
+
 function Get-ThemeColor {
     param(
         [string]$Value,
@@ -111,6 +124,11 @@ function Format-StudioRgba {
     )
     $alpha = ($AlphaPercent / 100.0).ToString('0.##', [System.Globalization.CultureInfo]::InvariantCulture)
     return "rgba($($Color.R), $($Color.G), $($Color.B), $alpha)"
+}
+
+function Format-StudioHex {
+    param([System.Drawing.Color]$Color)
+    return '#{0:X2}{1:X2}{2:X2}' -f $Color.R, $Color.G, $Color.B
 }
 
 function Add-ColorOpacityRow {
@@ -169,6 +187,46 @@ function Add-ColorOpacityRow {
         ColorButton = $colorButton
         AlphaTrack = $alphaTrack
     }
+}
+
+function Add-SolidColorRow {
+    param(
+        [System.Windows.Forms.Control]$Parent,
+        [string]$Label,
+        [int]$Top,
+        $Initial,
+        [string]$Description
+    )
+    $caption = New-Object System.Windows.Forms.Label
+    $caption.Text = $Label
+    $caption.SetBounds(12, $Top + 7, 88, 24)
+    $Parent.Controls.Add($caption)
+
+    $colorButton = New-Object System.Windows.Forms.Button
+    $colorButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+    $colorButton.UseVisualStyleBackColor = $false
+    $colorButton.SetBounds(100, $Top, 128, 32)
+    Update-ColorButton -Button $colorButton -Color $Initial.Color
+    $Parent.Controls.Add($colorButton)
+
+    $descriptionLabel = New-Object System.Windows.Forms.Label
+    $descriptionLabel.Text = $Description
+    $descriptionLabel.ForeColor = [System.Drawing.Color]::FromArgb(118, 105, 99)
+    $descriptionLabel.SetBounds(242, $Top + 7, 286, 24)
+    $Parent.Controls.Add($descriptionLabel)
+
+    $colorButton.Add_Click(({
+        $dialog = New-Object System.Windows.Forms.ColorDialog
+        $dialog.AnyColor = $true
+        $dialog.FullOpen = $true
+        $dialog.Color = [System.Drawing.Color]$colorButton.Tag
+        if ($dialog.ShowDialog($form) -eq [System.Windows.Forms.DialogResult]::OK) {
+            Update-ColorButton -Button $colorButton -Color $dialog.Color
+            $statusLabel.Text = '文字颜色已调整，点击保存并应用'
+        }
+        $dialog.Dispose()
+    }).GetNewClosure())
+    return $colorButton
 }
 
 function Resolve-ThemeImagePath {
@@ -249,6 +307,10 @@ $theme = Read-StudioTheme
 $sidebarInitial = Get-ThemeColor -Value ([string]$theme.sidebarColor) -FallbackRed 255 -FallbackGreen 241 -FallbackBlue 232 -FallbackAlpha 48
 $surfaceInitial = Get-ThemeColor -Value ([string]$theme.surfaceColor) -FallbackRed 255 -FallbackGreen 250 -FallbackBlue 246 -FallbackAlpha 35
 $composerInitial = Get-ThemeColor -Value ([string]$theme.composerColor) -FallbackRed 255 -FallbackGreen 252 -FallbackBlue 249 -FallbackAlpha 82
+$textInitial = Get-ThemeColor -Value ([string](Get-StudioThemeValue -Theme $theme -Name 'textColor' -Fallback '#1f2329')) -FallbackRed 31 -FallbackGreen 35 -FallbackBlue 41 -FallbackAlpha 100
+$mutedTextInitial = Get-ThemeColor -Value ([string](Get-StudioThemeValue -Theme $theme -Name 'mutedTextColor' -Fallback '#59636f')) -FallbackRed 89 -FallbackGreen 99 -FallbackBlue 111 -FallbackAlpha 100
+$initialTextMode = [string](Get-StudioThemeValue -Theme $theme -Name 'textColorMode' -Fallback 'auto')
+if ($initialTextMode -notin @('auto', 'dark', 'light', 'custom')) { $initialTextMode = 'auto' }
 $form = New-Object System.Windows.Forms.Form
 $form.Text = '豆包梦幻皮肤设置'
 $form.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
@@ -308,6 +370,11 @@ $colorsTab.Text = '颜色与透明度'
 $colorsTab.BackColor = [System.Drawing.Color]::FromArgb(250, 246, 243)
 $tabs.TabPages.Add($colorsTab)
 
+$textTab = New-Object System.Windows.Forms.TabPage
+$textTab.Text = '文字与对比度'
+$textTab.BackColor = [System.Drawing.Color]::FromArgb(250, 246, 243)
+$tabs.TabPages.Add($textTab)
+
 $brightnessTrack = Add-TrackRow -Parent $commonTab -Label '背景亮度' -Top 10 -Minimum 50 -Maximum 130 -Value ([int]([double]$theme.backgroundBrightness * 100)) -Suffix '%'
 $saturationTrack = Add-TrackRow -Parent $commonTab -Label '背景饱和度' -Top 54 -Minimum 0 -Maximum 200 -Value ([int]([double]$theme.backgroundSaturation * 100)) -Suffix '%'
 $blurTrack = Add-TrackRow -Parent $commonTab -Label '玻璃模糊' -Top 98 -Minimum 0 -Maximum 60 -Value ([int]$theme.blurPixels) -Suffix ' px'
@@ -346,6 +413,38 @@ $colorsHint.Text = '点击色块选择颜色；透明度越低，背景图片越
 $colorsHint.ForeColor = [System.Drawing.Color]::FromArgb(118, 105, 99)
 $colorsHint.SetBounds(12, 204, 520, 30)
 $colorsTab.Controls.Add($colorsHint)
+
+$textModeLabel = New-Object System.Windows.Forms.Label
+$textModeLabel.Text = '文字模式'
+$textModeLabel.SetBounds(12, 22, 88, 24)
+$textTab.Controls.Add($textModeLabel)
+
+$textModeBox = New-Object System.Windows.Forms.ComboBox
+$textModeBox.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
+$null = $textModeBox.Items.Add('智能适配（推荐）')
+$null = $textModeBox.Items.Add('固定深色文字')
+$null = $textModeBox.Items.Add('固定浅色文字')
+$null = $textModeBox.Items.Add('自定义颜色')
+$textModeBox.SetBounds(100, 18, 220, 30)
+$textModeBox.SelectedIndex = [Array]::IndexOf([string[]]@('auto', 'dark', 'light', 'custom'), $initialTextMode)
+$textTab.Controls.Add($textModeBox)
+
+$textColorButton = Add-SolidColorRow -Parent $textTab -Label '主要文字' -Top 72 -Initial $textInitial -Description '标题、正文与常用按钮'
+$mutedTextColorButton = Add-SolidColorRow -Parent $textTab -Label '次要文字' -Top 124 -Initial $mutedTextInitial -Description '提示、时间与占位文字'
+
+$textHint = New-Object System.Windows.Forms.Label
+$textHint.Text = '智能模式会分别分析侧栏、主区域和输入框的实际亮度，并选择对比度更高的文字。'
+$textHint.ForeColor = [System.Drawing.Color]::FromArgb(118, 105, 99)
+$textHint.SetBounds(12, 184, 520, 48)
+$textTab.Controls.Add($textHint)
+
+$updateTextControls = {
+    $custom = $textModeBox.SelectedIndex -eq 3
+    $textColorButton.Enabled = $custom
+    $mutedTextColorButton.Enabled = $custom
+}
+$textModeBox.Add_SelectedIndexChanged({ & $updateTextControls })
+& $updateTextControls
 
 $saveButton = New-Object System.Windows.Forms.Button
 $saveButton.Text = '保存并应用'
@@ -405,6 +504,10 @@ $saveButton.Add_Click({
         $current.sidebarColor = Format-StudioRgba -Color ([System.Drawing.Color]$sidebarRow.ColorButton.Tag) -AlphaPercent $sidebarRow.AlphaTrack.Value
         $current.surfaceColor = Format-StudioRgba -Color ([System.Drawing.Color]$surfaceRow.ColorButton.Tag) -AlphaPercent $surfaceRow.AlphaTrack.Value
         $current.composerColor = Format-StudioRgba -Color ([System.Drawing.Color]$composerRow.ColorButton.Tag) -AlphaPercent $composerRow.AlphaTrack.Value
+        $textModes = [string[]]@('auto', 'dark', 'light', 'custom')
+        $current | Add-Member -NotePropertyName textColorMode -NotePropertyValue $textModes[$textModeBox.SelectedIndex] -Force
+        $current | Add-Member -NotePropertyName textColor -NotePropertyValue (Format-StudioHex -Color ([System.Drawing.Color]$textColorButton.Tag)) -Force
+        $current | Add-Member -NotePropertyName mutedTextColor -NotePropertyValue (Format-StudioHex -Color ([System.Drawing.Color]$mutedTextColorButton.Tag)) -Force
         $current.blurPixels = $blurTrack.Value
         $current.backgroundPosition = [string]$positionBox.SelectedItem
         $json = $current | ConvertTo-Json -Depth 10
@@ -451,7 +554,10 @@ if ($SelfTest) {
     if ((Format-StudioRgba -Color $parsedTestColor.Color -AlphaPercent $parsedTestColor.Alpha) -ne 'rgba(12, 34, 56, 0.42)') {
         throw 'Theme Studio color formatting self-test failed.'
     }
-    if ($null -eq $saturationTrack -or $null -eq $sidebarRow -or $null -eq $surfaceRow -or $null -eq $composerRow) {
+    if ((Format-StudioHex -Color $parsedTestColor.Color) -ne '#0C2238') {
+        throw 'Theme Studio hexadecimal color formatting self-test failed.'
+    }
+    if ($null -eq $saturationTrack -or $null -eq $sidebarRow -or $null -eq $surfaceRow -or $null -eq $composerRow -or $null -eq $textModeBox -or $null -eq $textColorButton -or $null -eq $mutedTextColorButton) {
         throw 'Theme Studio advanced controls did not initialize.'
     }
     Write-Output "Theme Studio self-test passed: $($theme.name)"

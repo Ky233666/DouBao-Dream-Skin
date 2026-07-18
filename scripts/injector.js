@@ -12,7 +12,7 @@ const {
   validateDebuggerUrl,
 } = require("./cdp-client");
 
-const VERSION = "0.3.0";
+const VERSION = "0.4.0";
 const MAX_IMAGE_BYTES = 16 * 1024 * 1024;
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 const USER_THEME = path.join(PROJECT_ROOT, "config", "theme.json");
@@ -123,6 +123,10 @@ async function loadTheme(themePath) {
       throw new Error(`Invalid targetUrlPatterns[${index}]: ${error.message}`);
     }
   });
+  const textColorMode = assertShortText(raw.textColorMode, "textColorMode", "auto", 16).toLowerCase();
+  if (!["auto", "dark", "light", "custom"].includes(textColorMode)) {
+    throw new Error("textColorMode must be auto, dark, light, or custom");
+  }
   const theme = {
     id: assertShortText(raw.id, "id", "custom", 80),
     name: assertShortText(raw.name, "name", "Doubao Dream Skin", 120),
@@ -136,6 +140,9 @@ async function loadTheme(themePath) {
     borderColor: assertCssColor(raw.borderColor, "borderColor", "rgba(0, 0, 0, 0.14)"),
     shadowColor: assertCssColor(raw.shadowColor, "shadowColor", "rgba(0, 0, 0, 0.16)"),
     accentColor: assertCssColor(raw.accentColor, "accentColor", "#b85f4b"),
+    textColorMode,
+    textColor: assertCssColor(raw.textColor, "textColor", "#1f2329"),
+    mutedTextColor: assertCssColor(raw.mutedTextColor, "mutedTextColor", "#59636f"),
     blurPixels: assertNumber(raw.blurPixels, "blurPixels", 20, 0, 60),
     targetPatterns,
   };
@@ -282,6 +289,8 @@ async function inspectTarget(target, port) {
       hasStyle: Boolean(document.getElementById('doubao-dream-skin-style')),
       hasBackground: Boolean(document.getElementById('doubao-dream-skin-background')),
       fingerprint: window.__doubaoDreamSkin?.fingerprint || null,
+      textDecision: document.documentElement?.dataset?.doubaoDreamSkinText || null,
+      textPalette: window.__doubaoDreamSkin?.getTextPalette?.() || null,
     }))()`);
     return { targetId: target.id, ...result, client };
   } catch (error) {
@@ -603,6 +612,8 @@ async function runSelfTest(options) {
   const loaded = await loadPayload(options.themePath);
   if (!loaded.payload.includes("doubao-dream-skin-background")) throw new Error("Payload is missing its background marker");
   if (!loaded.payload.includes("data:image/")) throw new Error("Payload is missing its embedded background image");
+  if (!loaded.payload.includes("--dbs-main-text")) throw new Error("Payload is missing adaptive text colors");
+  if (!["auto", "dark", "light", "custom"].includes(loaded.theme.textColorMode)) throw new Error("Text color mode was not normalized");
   const frame = encodeClientFrame(0x1, Buffer.from("self-test", "utf8"));
   if (!(frame[1] & 0x80)) throw new Error("Client WebSocket frames must be masked");
   console.log(JSON.stringify({

@@ -9,7 +9,17 @@
   --dbs-accent: #b85f4b;
   --dbs-overlay: rgba(38, 19, 16, 0.16);
   --dbs-blur: 20px;
-  color-scheme: light;
+  --dbs-sidebar-text: #1f2329;
+  --dbs-sidebar-muted: #59636f;
+  --dbs-main-text: #1f2329;
+  --dbs-main-muted: #59636f;
+  --dbs-composer-text: #1f2329;
+  --dbs-composer-muted: #59636f;
+  --dbs-sidebar-text-shadow: none;
+  --dbs-main-text-shadow: none;
+  --dbs-composer-text-shadow: none;
+  --dbs-color-scheme: light;
+  color-scheme: var(--dbs-color-scheme);
 }
 
 #doubao-dream-skin-background {
@@ -86,6 +96,8 @@
   background-color: var(--dbs-sidebar) !important;
   background-image: none !important;
   border-color: var(--dbs-border) !important;
+  color: var(--dbs-sidebar-text) !important;
+  text-shadow: var(--dbs-sidebar-text-shadow);
   -webkit-backdrop-filter: blur(var(--dbs-blur)) saturate(1.08);
   backdrop-filter: blur(var(--dbs-blur)) saturate(1.08);
 }
@@ -94,6 +106,8 @@
 /* Avoid stacking two translucent sidebar panes on top of each other. */
 :root[data-doubao-dream-skin] nav[class*="left-side" i] {
   background-color: var(--dbs-sidebar) !important;
+  color: var(--dbs-sidebar-text) !important;
+  text-shadow: var(--dbs-sidebar-text-shadow);
 }
 
 :root[data-doubao-dream-skin] #flow_chat_sidebar {
@@ -125,6 +139,8 @@
 :root[data-doubao-dream-skin] [class*="conversation-content" i] {
   background-color: var(--dbs-surface) !important;
   background-image: none !important;
+  color: var(--dbs-main-text) !important;
+  text-shadow: var(--dbs-main-text-shadow);
   -webkit-backdrop-filter: blur(calc(var(--dbs-blur) * 0.08));
   backdrop-filter: blur(calc(var(--dbs-blur) * 0.08));
 }
@@ -137,6 +153,8 @@
 :root[data-doubao-dream-skin] #input-engine-container {
   background-color: var(--dbs-composer) !important;
   border-color: var(--dbs-border) !important;
+  color: var(--dbs-composer-text) !important;
+  text-shadow: var(--dbs-composer-text-shadow);
   box-shadow: 0 12px 36px var(--dbs-shadow) !important;
   -webkit-backdrop-filter: blur(var(--dbs-blur)) saturate(1.12);
   backdrop-filter: blur(var(--dbs-blur)) saturate(1.12);
@@ -151,6 +169,71 @@
 :root[data-doubao-dream-skin] textarea,
 :root[data-doubao-dream-skin] [contenteditable="true"] {
   background-color: transparent !important;
+}
+
+/* Only neutral Doubao text tokens are recolored. Semantic link, warning and
+   primary-button colors remain controlled by Doubao itself. */
+:root[data-doubao-dream-skin] nav[class*="left-side" i] :where(
+  a,
+  a *,
+  button,
+  button *,
+  [role="button"],
+  [role="button"] *,
+  [class*="text-dbx-text-primary" i]
+) {
+  color: var(--dbs-sidebar-text) !important;
+}
+
+:root[data-doubao-dream-skin] nav[class*="left-side" i] :where(
+  [class*="text-dbx-text-secondary" i],
+  [class*="text-dbx-text-tertiary" i],
+  [class*="text-(--dbx-text-disable" i]
+) {
+  color: var(--dbs-sidebar-muted) !important;
+}
+
+:root[data-doubao-dream-skin] main :where([class*="text-dbx-text-primary" i]) {
+  color: var(--dbs-main-text) !important;
+}
+
+:root[data-doubao-dream-skin] main :where(
+  [class*="text-dbx-text-secondary" i],
+  [class*="text-dbx-text-tertiary" i],
+  [class*="text-(--dbx-text-disable" i]
+) {
+  color: var(--dbs-main-muted) !important;
+}
+
+:root[data-doubao-dream-skin] #input-engine-container :where(
+  button,
+  button *,
+  [role="button"],
+  [role="button"] *,
+  input,
+  textarea,
+  [contenteditable="true"],
+  [class*="text-dbx-text-primary" i]
+) {
+  color: var(--dbs-composer-text) !important;
+  caret-color: var(--dbs-composer-text) !important;
+}
+
+:root[data-doubao-dream-skin] #input-engine-container :where(
+  [class*="text-dbx-text-secondary" i],
+  [class*="text-dbx-text-tertiary" i],
+  [class*="text-(--dbx-text-disable" i]
+) {
+  color: var(--dbs-composer-muted) !important;
+}
+
+:root[data-doubao-dream-skin] #input-engine-container :where(input, textarea)::placeholder {
+  color: var(--dbs-composer-muted) !important;
+  opacity: 0.86;
+}
+
+:root[data-doubao-dream-skin] #input-engine-container [contenteditable="true"][data-placeholder]::before {
+  color: var(--dbs-composer-muted) !important;
 }
 
 /* Keep controls legible without repainting every native component. */

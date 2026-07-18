@@ -12,6 +12,9 @@
   "borderColor": "rgba(112, 65, 50, 0.20)",
   "shadowColor": "rgba(62, 28, 20, 0.18)",
   "accentColor": "#b85f4b",
+  "textColorMode": "auto",
+  "textColor": "#1f2329",
+  "mutedTextColor": "#59636f",
   "blurPixels": 12,
   "targetUrlPatterns": [
     "^https://([a-z0-9-]+\\.)*doubao\\.com(?::[0-9]+)?/",

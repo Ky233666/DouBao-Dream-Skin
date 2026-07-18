@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "豆包梦幻皮肤",
   "short_name": "豆包皮肤",
-  "version": "0.1.0",
-  "description": "为网页版豆包添加本地自定义背景和可调节的玻璃界面。",
+  "version": "0.2.0",
+  "description": "为网页版豆包添加本地自定义背景、玻璃界面和智能文字配色。",
   "minimum_chrome_version": "109",
   "permissions": [
     "storage",
@@ -24,6 +24,7 @@
       ],
       "js": [
         "shared/defaults.js",
+        "shared/color-engine.js",
         "content/content.js"
       ],
       "run_at": "document_start"

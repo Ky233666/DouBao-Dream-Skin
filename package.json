@@ -1,11 +1,11 @@
 {
   "name": "doubao-dream-skin",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "A reversible CDP-injected skin for the Doubao Windows desktop app.",
   "license": "MIT",
   "scripts": {
-    "check": "node --check scripts/cdp-client.js && node --check scripts/injector.js && node --check browser-extension/shared/defaults.js && node --check browser-extension/content/content.js && node --check browser-extension/popup/popup.js && node --check browser-extension/options/options.js && node scripts/injector.js --self-test && node tests/mock-cdp.test.js && node tests/browser-extension.test.js"
+    "check": "node --check scripts/cdp-client.js && node --check scripts/injector.js && node --check browser-extension/shared/defaults.js && node --check browser-extension/shared/color-engine.js && node --check browser-extension/content/content.js && node --check browser-extension/popup/popup.js && node --check browser-extension/options/options.js && node scripts/injector.js --self-test && node tests/mock-cdp.test.js && node tests/browser-extension.test.js"
   },
   "engines": {
     "node": ">=14.18"

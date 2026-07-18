@@ -19,6 +19,9 @@
     surfaceAlpha: 35,
     composerColor: "#fffcf9",
     composerAlpha: 82,
+    textColorMode: "auto",
+    textColor: "#1f2329",
+    mutedTextColor: "#59636f",
   });
 
   const clamp = (value, minimum, maximum, fallback) => {
@@ -57,6 +60,11 @@
       surfaceAlpha: Math.round(clamp(source.surfaceAlpha, 0, 100, DEFAULT_CONFIG.surfaceAlpha)),
       composerColor: normalizeHex(source.composerColor, DEFAULT_CONFIG.composerColor),
       composerAlpha: Math.round(clamp(source.composerAlpha, 20, 100, DEFAULT_CONFIG.composerAlpha)),
+      textColorMode: ["auto", "dark", "light", "custom"].includes(source.textColorMode)
+        ? source.textColorMode
+        : DEFAULT_CONFIG.textColorMode,
+      textColor: normalizeHex(source.textColor, DEFAULT_CONFIG.textColor),
+      mutedTextColor: normalizeHex(source.mutedTextColor, DEFAULT_CONFIG.mutedTextColor),
     };
   }
 

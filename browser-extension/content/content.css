@@ -8,7 +8,17 @@ html[data-doubao-dream-skin-web="enabled"] {
   --dbsw-shadow: rgba(48, 28, 22, 0.18);
   --dbsw-overlay: rgba(28, 18, 16, 0.08);
   --dbsw-blur: 12px;
-  color-scheme: light;
+  --dbsw-sidebar-text: #1f2329;
+  --dbsw-sidebar-muted: #59636f;
+  --dbsw-main-text: #1f2329;
+  --dbsw-main-muted: #59636f;
+  --dbsw-composer-text: #1f2329;
+  --dbsw-composer-muted: #59636f;
+  --dbsw-sidebar-text-shadow: none;
+  --dbsw-main-text-shadow: none;
+  --dbsw-composer-text-shadow: none;
+  --dbsw-color-scheme: light;
+  color-scheme: var(--dbsw-color-scheme);
 }
 
 #doubao-dream-skin-web-background {
@@ -70,6 +80,8 @@ html[data-doubao-dream-skin-web="enabled"] nav[class*="left-side" i] {
   background-color: var(--dbsw-sidebar) !important;
   background-image: none !important;
   border-color: var(--dbsw-border) !important;
+  color: var(--dbsw-sidebar-text) !important;
+  text-shadow: var(--dbsw-sidebar-text-shadow);
   -webkit-backdrop-filter: blur(var(--dbsw-blur)) saturate(1.08);
   backdrop-filter: blur(var(--dbsw-blur)) saturate(1.08);
 }
@@ -96,6 +108,8 @@ html[data-doubao-dream-skin-web="enabled"] [class*="chat-content" i],
 html[data-doubao-dream-skin-web="enabled"] [class*="conversation-content" i] {
   background-color: var(--dbsw-surface) !important;
   background-image: none !important;
+  color: var(--dbsw-main-text) !important;
+  text-shadow: var(--dbsw-main-text-shadow);
   -webkit-backdrop-filter: blur(calc(var(--dbsw-blur) * 0.08));
   backdrop-filter: blur(calc(var(--dbsw-blur) * 0.08));
 }
@@ -107,6 +121,8 @@ html[data-doubao-dream-skin-web="enabled"] form:has([contenteditable="true"]),
 html[data-doubao-dream-skin-web="enabled"] #input-engine-container {
   background-color: var(--dbsw-composer) !important;
   border-color: var(--dbsw-border) !important;
+  color: var(--dbsw-composer-text) !important;
+  text-shadow: var(--dbsw-composer-text-shadow);
   box-shadow: 0 12px 36px var(--dbsw-shadow) !important;
   -webkit-backdrop-filter: blur(var(--dbsw-blur)) saturate(1.12);
   backdrop-filter: blur(var(--dbsw-blur)) saturate(1.12);
@@ -118,6 +134,74 @@ html[data-doubao-dream-skin-web="enabled"] textarea,
 html[data-doubao-dream-skin-web="enabled"] [contenteditable="true"] {
   background-color: transparent !important;
   background-image: none !important;
+}
+
+/* Doubao uses semantic text utility classes for most labels. Override only
+   neutral text tokens so links, warnings and primary buttons keep their
+   original semantic colors. */
+html[data-doubao-dream-skin-web="enabled"] nav[class*="left-side" i] :where(
+  a,
+  a *,
+  button,
+  button *,
+  [role="button"],
+  [role="button"] *,
+  [class*="text-dbx-text-primary" i]
+) {
+  color: var(--dbsw-sidebar-text) !important;
+}
+
+html[data-doubao-dream-skin-web="enabled"] nav[class*="left-side" i] :where(
+  [class*="text-dbx-text-secondary" i],
+  [class*="text-dbx-text-tertiary" i],
+  [class*="text-(--dbx-text-disable" i]
+) {
+  color: var(--dbsw-sidebar-muted) !important;
+}
+
+html[data-doubao-dream-skin-web="enabled"] main :where(
+  [class*="text-dbx-text-primary" i]
+) {
+  color: var(--dbsw-main-text) !important;
+}
+
+html[data-doubao-dream-skin-web="enabled"] main :where(
+  [class*="text-dbx-text-secondary" i],
+  [class*="text-dbx-text-tertiary" i],
+  [class*="text-(--dbx-text-disable" i]
+) {
+  color: var(--dbsw-main-muted) !important;
+}
+
+html[data-doubao-dream-skin-web="enabled"] #input-engine-container :where(
+  button,
+  button *,
+  [role="button"],
+  [role="button"] *,
+  input,
+  textarea,
+  [contenteditable="true"],
+  [class*="text-dbx-text-primary" i]
+) {
+  color: var(--dbsw-composer-text) !important;
+  caret-color: var(--dbsw-composer-text) !important;
+}
+
+html[data-doubao-dream-skin-web="enabled"] #input-engine-container :where(
+  [class*="text-dbx-text-secondary" i],
+  [class*="text-dbx-text-tertiary" i],
+  [class*="text-(--dbx-text-disable" i]
+) {
+  color: var(--dbsw-composer-muted) !important;
+}
+
+html[data-doubao-dream-skin-web="enabled"] #input-engine-container :where(input, textarea)::placeholder {
+  color: var(--dbsw-composer-muted) !important;
+  opacity: 0.86;
+}
+
+html[data-doubao-dream-skin-web="enabled"] #input-engine-container [contenteditable="true"][data-placeholder]::before {
+  color: var(--dbsw-composer-muted) !important;
 }
 
 html[data-doubao-dream-skin-web="enabled"] ::selection {

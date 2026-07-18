@@ -2,12 +2,15 @@
   "use strict";
 
   const shared = globalThis.DoubaoDreamSkinShared;
+  const colorEngine = globalThis.DoubaoDreamSkinColor;
   const byId = (id) => document.getElementById(id);
   const preview = byId("preview");
+  const previewBackground = byId("previewBackground");
   const status = byId("status");
   const imageInput = byId("imageInput");
   let pendingImage = null;
   let pendingFileName = shared.DEFAULT_CONFIG.backgroundFileName;
+  let previewAnalysisVersion = 0;
 
   const defaultBackground = [
     "radial-gradient(circle at 24% 24%, rgba(255, 238, 205, 0.96), rgba(246, 169, 140, 0) 42%)",
@@ -25,18 +28,70 @@
   ];
 
   const updateOutput = (id, suffix) => { byId(`${id}Value`).textContent = `${byId(id).value}${suffix}`; };
-  rangeFields.forEach(([id, suffix]) => byId(id).addEventListener("input", () => updateOutput(id, suffix)));
+  rangeFields.forEach(([id, suffix]) => byId(id).addEventListener("input", () => {
+    updateOutput(id, suffix);
+    updatePreview();
+  }));
 
-  function updatePreview() {
-    preview.style.backgroundImage = pendingImage ? `url("${pendingImage}")` : defaultBackground;
-    preview.style.backgroundPosition = byId("backgroundPosition").value;
-    preview.style.filter = `brightness(${Number(byId("backgroundBrightness").value) / 100}) saturate(${Number(byId("backgroundSaturation").value) / 100})`;
-    byId("backgroundName").textContent = pendingFileName;
+  function renderContrast(palette) {
+    const container = byId("textAnalysis");
+    const labels = [
+      ["侧栏", palette.sidebar],
+      ["主区域", palette.main],
+      ["输入框", palette.composer],
+    ];
+    const items = labels.map(([label, region]) => {
+      const item = document.createElement("div");
+      item.className = "contrast-item";
+      const swatch = document.createElement("i");
+      swatch.className = "contrast-swatch";
+      swatch.style.background = region.primary;
+      const title = document.createElement("strong");
+      title.textContent = label;
+      const detail = document.createElement("span");
+      detail.textContent = `${region.tone === "light" ? "浅色" : "深色"}文字 · 平均对比度 ${region.contrast}:1`;
+      item.append(swatch, title, detail);
+      return item;
+    });
+    container.replaceChildren(...items);
   }
 
-  ["backgroundPosition", "backgroundBrightness", "backgroundSaturation"].forEach((id) => {
-    byId(id).addEventListener("input", updatePreview);
-  });
+  function applyPreviewPalette(config, palette) {
+    preview.style.setProperty("--preview-sidebar", shared.hexToRgba(config.sidebarColor, config.sidebarAlpha));
+    preview.style.setProperty("--preview-surface", shared.hexToRgba(config.surfaceColor, config.surfaceAlpha));
+    preview.style.setProperty("--preview-composer", shared.hexToRgba(config.composerColor, config.composerAlpha));
+    preview.style.setProperty("--preview-sidebar-text", palette.sidebar.primary);
+    preview.style.setProperty("--preview-main-text", palette.main.primary);
+    preview.style.setProperty("--preview-composer-text", palette.composer.primary);
+    preview.style.setProperty("--preview-sidebar-shadow", palette.sidebar.shadow);
+    preview.style.setProperty("--preview-main-shadow", palette.main.shadow);
+    preview.style.setProperty("--preview-composer-shadow", palette.composer.shadow);
+    renderContrast(palette);
+  }
+
+  function updateTextControlState() {
+    const custom = byId("textColorMode").value === "custom";
+    byId("textColor").disabled = !custom;
+    byId("mutedTextColor").disabled = !custom;
+  }
+
+  function updatePreview() {
+    const config = collect();
+    const version = ++previewAnalysisVersion;
+    previewBackground.style.backgroundImage = pendingImage ? `url("${pendingImage}")` : defaultBackground;
+    previewBackground.style.backgroundPosition = config.backgroundPosition;
+    previewBackground.style.filter = `brightness(${config.backgroundBrightness / 100}) saturate(${config.backgroundSaturation / 100})`;
+    byId("backgroundName").textContent = pendingFileName;
+    applyPreviewPalette(config, colorEngine.resolvePalette(config));
+    if (pendingImage) {
+      colorEngine.analyzeImage(pendingImage).then((profile) => {
+        if (version !== previewAnalysisVersion) return;
+        applyPreviewPalette(config, colorEngine.resolvePalette(config, profile));
+      });
+    }
+  }
+
+  byId("backgroundPosition").addEventListener("input", updatePreview);
 
   function render(config) {
     const normalized = shared.normalizeConfig(config);
@@ -51,8 +106,12 @@
     byId("surfaceAlpha").value = normalized.surfaceAlpha;
     byId("composerColor").value = normalized.composerColor;
     byId("composerAlpha").value = normalized.composerAlpha;
+    byId("textColorMode").value = normalized.textColorMode;
+    byId("textColor").value = normalized.textColor;
+    byId("mutedTextColor").value = normalized.mutedTextColor;
     pendingImage = normalized.backgroundImage;
     pendingFileName = normalized.backgroundFileName;
+    updateTextControlState();
     rangeFields.forEach(([id, suffix]) => updateOutput(id, suffix));
     updatePreview();
   }
@@ -72,8 +131,19 @@
       surfaceAlpha: byId("surfaceAlpha").value,
       composerColor: byId("composerColor").value,
       composerAlpha: byId("composerAlpha").value,
+      textColorMode: byId("textColorMode").value,
+      textColor: byId("textColor").value,
+      mutedTextColor: byId("mutedTextColor").value,
     });
   }
+
+  ["sidebarColor", "surfaceColor", "composerColor", "textColor", "mutedTextColor"].forEach((id) => {
+    byId(id).addEventListener("input", updatePreview);
+  });
+  byId("textColorMode").addEventListener("change", () => {
+    updateTextControlState();
+    updatePreview();
+  });
 
   chrome.storage.local.get(shared.STORAGE_KEY, (result) => {
     render(result[shared.STORAGE_KEY] || shared.DEFAULT_CONFIG);
